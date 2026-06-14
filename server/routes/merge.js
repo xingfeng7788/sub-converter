@@ -1,6 +1,9 @@
 import express from 'express'
-import { parseSubscription, addEmoji } from '../utils/parsers.js'
+import { parseSubscription } from '../utils/parsers.js'
 import { convertToTarget } from '../utils/converters.js'
+import { applyNodeOptions, boolOption, dedupeNodes } from '../utils/nodes.js'
+import { contentTypeForTarget, extensionForTarget, isSupportedTarget, normalizeTarget, supportedTargets } from '../utils/targets.js'
+import { fetchSubscriptionContent } from '../utils/subscription.js'
 
 const router = express.Router()
 
@@ -9,7 +12,7 @@ router.post('/', async (req, res) => {
     try {
         const {
             urls,           // 订阅 URL 数组
-            target,         // 目标客户端
+            target: rawTarget, // 目标客户端
             dedupe = true,  // 是否去重
             emoji = true,   // 是否添加 emoji
             sort = false,   // 是否排序
@@ -17,31 +20,26 @@ router.post('/', async (req, res) => {
             skipCert = false,
             include = '',   // 包含关键词
             exclude = '',   // 排除关键词
-            rename = ''     // 重命名规则
+            rename = '',    // 重命名规则
+            rulePreset = ''
         } = req.body
 
         if (!urls || !Array.isArray(urls) || urls.length === 0) {
             return res.status(400).json({ error: 'urls array is required' })
         }
 
-        if (!target) {
-            return res.status(400).json({ error: 'target client is required' })
+        const target = normalizeTarget(rawTarget)
+        if (!target || !isSupportedTarget(target)) {
+            return res.status(400).json({
+                error: 'Invalid target client',
+                supported: supportedTargets()
+            })
         }
 
         // 并发获取所有订阅
         const fetchPromises = urls.map(async (url, index) => {
             try {
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': 'LaoWang-Sub-Converter/1.0' },
-                    timeout: 10000
-                })
-
-                if (!response.ok) {
-                    console.warn(`Failed to fetch subscription ${index + 1}: ${response.status}`)
-                    return { success: false, url, error: `HTTP ${response.status}` }
-                }
-
-                const content = await response.text()
+                const content = await fetchSubscriptionContent(url, { timeoutMs: 10000 })
                 const nodes = parseSubscription(content)
                 return { success: true, url, nodes, count: nodes.length }
             } catch (e) {
@@ -69,89 +67,26 @@ router.post('/', async (req, res) => {
         }
 
         // 去重 (基于 type:server:port 组合，防止同端口不同协议误删)
-        if (dedupe) {
-            const seen = new Set()
-            allNodes = allNodes.filter(node => {
-                const key = `${node.type}:${node.server}:${node.port}`
-                if (seen.has(key)) {
-                    return false
-                }
-                seen.add(key)
-                return true
-            })
-        }
+        if (boolOption(dedupe, true)) allNodes = dedupeNodes(allNodes)
 
-        // 过滤节点
-        if (include) {
-            const keywords = include.split('|').map(kw => kw.trim()).filter(Boolean)
-            allNodes = allNodes.filter(node =>
-                keywords.some(kw => node.name.includes(kw))
-            )
-        }
-
-        if (exclude) {
-            const keywords = exclude.split('|').map(kw => kw.trim()).filter(Boolean)
-            allNodes = allNodes.filter(node =>
-                !keywords.some(kw => node.name.includes(kw))
-            )
-        }
-
-        // 重命名
-        if (rename) {
-            const rules = rename.split('\n').filter(Boolean)
-            for (const rule of rules) {
-                const [from, to] = rule.split('->')
-                if (from && to !== undefined) {
-                    allNodes = allNodes.map(node => ({
-                        ...node,
-                        name: node.name.split(from.trim()).join(to.trim())
-                    }))
-                }
-            }
-        }
-
-        // 添加 Emoji
-        if (emoji) {
-            allNodes = allNodes.map(node => ({
-                ...node,
-                name: addEmoji(node.name)
-            }))
-        }
-
-        // 排序
-        if (sort) {
-            allNodes.sort((a, b) => a.name.localeCompare(b.name))
-        }
+        allNodes = applyNodeOptions(allNodes, { include, exclude, sort, emoji, rename })
 
         // 转换为目标格式
         if (allNodes.length === 0) {
             return res.status(422).json({ error: 'No supported nodes found in subscriptions' })
         }
 
-        const output = convertToTarget(allNodes, target, { udp, skipCert })
-
-        // 设置响应头
-        const contentTypes = {
-            clash: 'text/yaml',
-            clashmeta: 'text/yaml',
-            mihomo: 'text/yaml',
-            stash: 'text/yaml',
-            clashverge: 'text/yaml',
-            'clash-verge': 'text/yaml',
-            clashnyanpasu: 'text/yaml',
-            'clash-nyanpasu': 'text/yaml',
-            flclash: 'text/yaml',
-            singbox: 'application/json',
-            'sing-box': 'application/json',
-            nekobox: 'application/json',
-            hiddify: 'application/json',
-            sfa: 'application/json',
-            sfi: 'application/json',
-            sfm: 'application/json'
+        const output = convertToTarget(allNodes, target, {
+            udp: boolOption(udp, true),
+            skipCert: boolOption(skipCert, false),
+            rulePreset
+        })
+        if (!output || !output.trim()) {
+            return res.status(422).json({ error: 'No nodes can be converted to the selected target client' })
         }
 
-        res.setHeader('Content-Type', contentTypes[target] || 'text/plain')
-        res.setHeader('Content-Disposition', `attachment; filename="merged-${target}.${['singbox', 'sing-box', 'nekobox', 'hiddify', 'sfa', 'sfi', 'sfm'].includes(target) ? 'json' : ['clash', 'clashmeta', 'mihomo', 'stash', 'clashverge', 'clash-verge', 'clashnyanpasu', 'clash-nyanpasu', 'flclash'].includes(target) ? 'yaml' : 'txt'}"`)
+        res.setHeader('Content-Type', contentTypeForTarget(target))
+        res.setHeader('Content-Disposition', `attachment; filename="merged-${target}.${extensionForTarget(target)}"`)
 
         // 如果请求 JSON 格式的响应
         if (req.query.format === 'json') {
@@ -162,7 +97,7 @@ router.post('/', async (req, res) => {
                     successfulFetches: results.filter(r => r.success).length,
                     failedFetches: results.filter(r => !r.success).length,
                     totalNodes: allNodes.length,
-                    deduped: dedupe
+                    deduped: boolOption(dedupe, true)
                 },
                 subscriptions: fetchSummary,
                 output
@@ -189,13 +124,7 @@ router.post('/preview', async (req, res) => {
         // 并发获取所有订阅
         const fetchPromises = urls.map(async (url) => {
             try {
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': 'LaoWang-Sub-Converter/1.0' }
-                })
-
-                if (!response.ok) return { success: false, nodes: [] }
-
-                const content = await response.text()
+                const content = await fetchSubscriptionContent(url, { timeoutMs: 10000 })
                 return { success: true, nodes: parseSubscription(content) }
             } catch (e) {
                 return { success: false, nodes: [] }
@@ -208,15 +137,7 @@ router.post('/preview', async (req, res) => {
         let allNodes = results.flatMap(r => r.nodes)
 
         // 去重
-        if (dedupe) {
-            const seen = new Set()
-            allNodes = allNodes.filter(node => {
-                const key = `${node.type}:${node.server}:${node.port}`
-                if (seen.has(key)) return false
-                seen.add(key)
-                return true
-            })
-        }
+        if (boolOption(dedupe, true)) allNodes = dedupeNodes(allNodes)
 
         // 按类型分组统计
         const byType = {}

@@ -54,7 +54,8 @@ const clients = [
   { id: 'nekobox', name: 'NekoBox', platform: 'Android 客户端', icon: Box },
   { id: 'surfboard', name: 'Surfboard', platform: 'Android 客户端', icon: Waves },
   { id: 'sfa', name: 'SFA', platform: 'Android sing-box', icon: Smartphone },
-  { id: 'sfi', name: 'SFI', platform: 'iOS sing-box', icon: Smartphone }
+  { id: 'sfi', name: 'SFI', platform: 'iOS sing-box', icon: Smartphone },
+  { id: 'sfm', name: 'SFM', platform: 'macOS sing-box', icon: Monitor }
 ]
 </script>
 

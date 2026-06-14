@@ -4,17 +4,35 @@
 
 ## 核心能力
 
-- 多协议解析：SS、SSR、VMess、VLESS、VLESS Reality、Trojan、Hysteria、Hysteria2、TUIC、Snell、HTTP、SOCKS5、Clash YAML、sing-box JSON。
-- 多客户端输出：Clash、Clash Meta、Mihomo、Stash、Clash Verge、FlClash、Surge、Surfboard、Loon、Quantumult X、Shadowrocket、V2RayN、V2RayNG、V2RayU、NekoBox、Hiddify、sing-box、SFA、SFI。
-- 订阅合并：批量拉取多个订阅，合并、去重、预览节点，并导出目标客户端配置。
-- 健康检测：从服务器侧检测节点连通性和延迟，过滤离线节点，导出在线节点配置。
-- 二维码导入：转换后的订阅地址可生成二维码；V2RayN、V2RayNG、V2RayU、Shadowrocket 等分享链接输出还支持单节点二维码。
-- 短链接：把复杂转换链接保存为短码，支持自定义短码、访问统计和删除。
-- 私有化部署：单 Docker 镜像同时包含前端页面、后端 API 和持久化数据目录，适合 NAS、VPS、软路由环境。
+- 多协议解析：SS、SSR、VMess、VLESS、VLESS Reality、Trojan、Hysteria、Hysteria2、TUIC、Snell、AnyTLS、HTTP、SOCKS5、Clash/Mihomo YAML、sing-box JSON。
+- 多客户端输出：Clash、Clash Meta、Mihomo、Stash、Clash Verge、FlClash、Surge、Surfboard、Loon、Quantumult X、Shadowrocket、V2RayN、V2RayNG、V2RayU、NekoBox、Hiddify、sing-box、SFA、SFI、SFM。
+- 节点整理：过滤、排除、排序、重命名、地区 emoji、合并多订阅、按协议/服务器/端口去重。
+- 健康检测：从部署服务器侧检测 TCP 可达性和延迟，并导出在线节点。
+- 私有化部署：支持 Node、Docker、Docker Compose、Vercel、Netlify、Render、Fly、Zeabur 等部署方式。
 
-## 推荐部署
+## 本地开发
 
-### Docker / NAS
+需要 Node.js `>=20.19.0`。
+
+```bash
+npm install
+npm run dev
+```
+
+前端开发服务由 Vite 启动。后端 API 可单独启动：
+
+```bash
+npm run server
+```
+
+生产构建：
+
+```bash
+npm run build
+npm run server
+```
+
+## Docker / NAS
 
 ```bash
 docker run -d \
@@ -31,63 +49,9 @@ docker run -d \
 http://NAS_IP:3000
 ```
 
-短链接数据会保存在宿主机的 `./data` 目录中。
+短链接数据保存在容器内 `/app/data`，建议挂载到宿主机目录。
 
-### Docker Compose
-
-```bash
-git clone https://github.com/tony-wang1990/laowang-sub-converter.git
-cd laowang-sub-converter
-docker compose up -d
-```
-
-### Docker Hub
-
-仓库 Actions 默认发布 GHCR 镜像。如果要同步发布 Docker Hub，在 GitHub 仓库 Secrets 中添加：
-
-- `DOCKERHUB_USERNAME`
-- `DOCKERHUB_TOKEN`
-
-配置后会自动推送：
-
-```text
-<dockerhub-user>/laowang-sub-converter:latest
-```
-
-## 本地开发
-
-```bash
-git clone https://github.com/tony-wang1990/laowang-sub-converter.git
-cd laowang-sub-converter
-npm install
-npm run dev
-```
-
-前端开发服务默认由 Vite 启动。后端 API 可单独启动：
-
-```bash
-npm run server
-```
-
-生产构建：
-
-```bash
-npm run build
-npm run server
-```
-
-## 页面说明
-
-| 页面 | 功能 |
-| --- | --- |
-| 控制台 | 项目入口、协议支持概览、常用功能入口 |
-| 订阅转换 | 输入订阅地址，选择客户端，生成转换订阅链接、下载配置或二维码 |
-| 订阅合并 | 多订阅合并、去重、预览、导出 |
-| 节点检测 | 检测节点在线状态和延迟，导出在线节点 |
-| 短链接 | 创建、复制、统计、删除短链接 |
-| 部署说明 | Docker、API、兼容性和发布状态说明 |
-
-## API 接口
+## API
 
 ### 订阅转换
 
@@ -99,15 +63,24 @@ GET /api/convert?target=clashmeta&url=https%3A%2F%2Fexample.com%2Fsub
 
 | 参数 | 说明 |
 | --- | --- |
-| `target` | 目标客户端，例如 `clashmeta`、`mihomo`、`singbox`、`surge`、`v2rayn` |
+| `target` | 目标客户端，例如 `mihomo`、`singbox`、`surge`、`v2rayn` |
 | `url` | 订阅地址，需要 URL 编码 |
 | `emoji` | 是否添加地区标识，`1` 或 `0` |
 | `udp` | 是否启用 UDP，`1` 或 `0` |
-| `sort` | 是否排序，`1` 或 `0` |
-| `include` | 仅保留包含关键词的节点 |
-| `exclude` | 排除包含关键词的节点 |
-| `rename` | 重命名规则，例如 `old->new` |
-| `rulePreset` | 分流模板：`standard`、`developer`、`gaming`、`streaming` |
+| `scert` | 是否跳过证书校验，`1` 或 `0` |
+| `sort` | 是否按名称排序，`1` 或 `0` |
+| `include` | 仅保留包含关键词的节点，多个关键词用 `|` 分隔 |
+| `exclude` | 排除包含关键词的节点，多个关键词用 `|` 分隔 |
+| `rename` | 重命名规则，例如 `old->new`，多条规则换行 |
+| `rulePreset` | 分流模板：`basic`、`standard`、`developer`、`gaming`、`streaming` |
+
+### 支持目标列表
+
+```http
+GET /api/targets
+```
+
+返回目标客户端 ID、响应类型和默认文件扩展名。
 
 ### 订阅合并
 
@@ -116,14 +89,12 @@ POST /api/merge
 Content-Type: application/json
 
 {
-  "urls": [
-    "https://example.com/sub1",
-    "https://example.com/sub2"
-  ],
+  "urls": ["https://example.com/sub1", "https://example.com/sub2"],
   "target": "clashmeta",
   "dedupe": true,
   "emoji": true,
-  "sort": false
+  "sort": false,
+  "rulePreset": "standard"
 }
 ```
 
@@ -156,8 +127,6 @@ Content-Type: application/json
 }
 ```
 
-返回内容包含节点状态、统计信息和 `exportConfig` 在线节点导出结果。
-
 ### 短链接
 
 ```http
@@ -170,75 +139,53 @@ Content-Type: application/json
 }
 ```
 
-列表：
+列表和删除：
 
 ```http
 GET /api/shortlink/list
-```
-
-删除：
-
-```http
 DELETE /api/shortlink/:id
 ```
 
-服务探针：
+健康探针：
 
 ```http
 GET /healthz
 ```
 
-## 兼容性
+## 兼容性说明
 
-### 输入协议
-
-| 协议 | 支持情况 |
+| 输入协议 | 支持情况 |
 | --- | --- |
-| SS / SSR | 支持常见 URI 格式 |
-| VMess | 支持 TCP、WS、TLS 等常见参数 |
-| VLESS | 支持 TLS、Reality、WS 等常见参数 |
-| Trojan | 支持 TLS 和常见传输参数 |
-| Hysteria / Hysteria2 | 支持主流分享链接格式 |
-| TUIC | 支持常见 v5 链接 |
-| Snell | 支持常见链接参数 |
-| HTTP / SOCKS5 | 支持代理节点转换 |
-| Clash YAML | 可解析 Clash/Mihomo 配置中的节点 |
-| sing-box JSON | 可解析 sing-box outbound 节点 |
+| SS / SSR | 常见 URI、Clash YAML |
+| VMess | TCP、WS、gRPC、TLS |
+| VLESS | TLS、Reality、WS、gRPC |
+| Trojan | TLS、WS |
+| Hysteria / Hysteria2 | 常见分享链接和 Clash/sing-box 配置 |
+| TUIC | 常见 v5 分享链接和 Mihomo/sing-box 配置 |
+| Snell | 常见分享链接和 Mihomo/Surge/Loon 配置 |
+| AnyTLS | URI、Mihomo YAML、sing-box JSON、Surge/Loon/Quantumult X 输出 |
+| HTTP / SOCKS5 | 常见代理节点 |
 
-### 输出客户端
+部分客户端不支持所有协议。转换器会尽量只输出目标客户端可识别的节点；如果某个目标客户端没有任何可输出节点，接口返回 `422`，避免下载空配置或伪配置。
 
-| 客户端 | 输出格式 |
-| --- | --- |
-| Clash / Clash Meta / Mihomo / Stash / Clash Verge / FlClash | YAML |
-| Surge / Surfboard / Loon | conf / 规则文本 |
-| Quantumult X | 节点配置文本 |
-| Shadowrocket / V2RayN / V2RayNG / V2RayU | Base64 分享链接订阅 |
-| sing-box / NekoBox / Hiddify / SFA / SFI / SFM | JSON |
+## 安全配置
+
+默认禁止后端拉取 `localhost`、内网 IP、链路本地地址等私有订阅 URL，减少公开部署时的 SSRF 风险。自用内网部署如果确实需要拉取本机或内网订阅，可以设置：
+
+```bash
+ALLOW_PRIVATE_SUBSCRIPTION_URLS=1
+```
 
 ## 测试
 
 ```bash
+npm test
 npm run build
-node test-all-protocols.js
-node final-comprehensive-test.mjs
-npm audit --audit-level=moderate
+npm run audit
 ```
 
-当前测试覆盖协议解析、主要客户端导出、规则模板、订阅合并、去重、健康检测和在线节点导出。
-
-## 技术栈
-
-- 前端：Vue 3、Vite、lucide-vue-next
-- 后端：Node.js、Express
-- 配置解析：js-yaml
-- 二维码：qrcode
-- 部署：Docker、Docker Compose、GitHub Actions、GHCR、可选 Docker Hub
-
-## 注意事项
-
-- 该项目仅用于订阅格式转换、节点整理和自用部署，请遵守所在地法律法规。
-- 健康检测结果取决于部署服务器所在网络环境，不等同于所有客户端所在地的实际可用性。
-- 第三方转换 API 只作为备用选项；私有化部署建议优先使用本地服务。
+当前测试覆盖协议解析、目标客户端关键字段、订阅转换、合并、去重、健康检测和在线节点导出。
+`npm run audit` 用于依赖安全审计，当前依赖已升级到通过审计的 Vite / esbuild 版本。
 
 ## License
 

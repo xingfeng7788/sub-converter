@@ -1,7 +1,7 @@
 {
   "name": "laowang-sub-converter",
   "version": "1.0.0",
-  "description": "老王订阅转换器 - 支持多协议、多客户端、健康检测和 Docker/NAS 部署的订阅转换工具",
+  "description": "LaoWang subscription converter for multi-protocol proxy client formats",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,10 @@
     "preview": "vite preview",
     "server": "node server/index.js",
     "start": "npm run build && npm run server",
+    "test": "npm run test:protocol && npm run test:api",
+    "test:protocol": "node tests/protocol-matrix.test.mjs",
+    "test:api": "node tests/api.test.mjs",
+    "audit": "npm audit --audit-level=moderate",
     "docker:build": "docker build -t laowang-sub-converter:latest .",
     "docker:run": "docker run --rm -p 3000:3000 laowang-sub-converter:latest",
     "docker:compose": "docker-compose up -d"
@@ -39,10 +43,13 @@
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.0",
-    "vite": "^6.0.0"
+    "@vitejs/plugin-vue": "^6.0.7",
+    "vite": "^8.0.16"
+  },
+  "overrides": {
+    "qs": "^6.15.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.19.0"
   }
 }

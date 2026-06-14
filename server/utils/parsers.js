@@ -60,7 +60,8 @@ export function parseSubscription(content) {
                                     : line.startsWith('tuic://') ? parseTuic
                                         : line.startsWith('snell://') ? parseSnell
                                             : (line.startsWith('socks://') || line.startsWith('socks5://')) ? parseSocks
-                                                : (line.startsWith('http://') || line.startsWith('https://')) ? parseHttpProxy
+                                                : line.startsWith('anytls://') ? parseAnyTLS
+                                                    : (line.startsWith('http://') || line.startsWith('https://')) ? parseHttpProxy
                                         : null
 
         if (!parser) continue
@@ -179,11 +180,24 @@ function fromClashProxy(proxy) {
                 ...base,
                 uuid: proxy.uuid,
                 password: proxy.password,
+                token: proxy.token || '',
                 congestion: proxy['congestion-controller'] || proxy.congestion_control || 'bbr',
                 alpn: proxy.alpn || ['h3'],
                 sni: proxy.sni || proxy.server,
                 insecure: proxy['skip-cert-verify'] === true,
                 udpRelayMode: proxy['udp-relay-mode'] || 'native'
+            }
+        case 'anytls':
+            return {
+                ...base,
+                password: proxy.password || '',
+                sni: proxy.sni || proxy.servername || proxy.server,
+                alpn: Array.isArray(proxy.alpn) ? proxy.alpn : (proxy.alpn ? [proxy.alpn] : []),
+                insecure: proxy['skip-cert-verify'] === true,
+                fingerprint: proxy['client-fingerprint'] || proxy.fingerprint || 'chrome',
+                idleSessionCheckInterval: proxy['idle-session-check-interval'] || proxy.idleSessionCheckInterval || '',
+                idleSessionTimeout: proxy['idle-session-timeout'] || proxy.idleSessionTimeout || '',
+                minIdleSession: proxy['min-idle-session'] ?? proxy.minIdleSession
             }
         case 'snell':
             return {
@@ -317,11 +331,24 @@ function fromSingBoxOutbound(outbound) {
                 ...base,
                 uuid: outbound.uuid,
                 password: outbound.password,
+                token: outbound.token || '',
                 congestion: outbound.congestion_control || 'bbr',
                 alpn: outbound.tls?.alpn || ['h3'],
                 sni: outbound.tls?.server_name || outbound.server,
                 insecure: outbound.tls?.insecure === true,
                 udpRelayMode: outbound.udp_relay_mode || 'native'
+            }
+        case 'anytls':
+            return {
+                ...base,
+                password: outbound.password || '',
+                sni: outbound.tls?.server_name || outbound.server,
+                alpn: outbound.tls?.alpn || [],
+                insecure: outbound.tls?.insecure === true,
+                fingerprint: outbound.tls?.utls?.fingerprint || 'chrome',
+                idleSessionCheckInterval: outbound.idle_session_check_interval || '',
+                idleSessionTimeout: outbound.idle_session_timeout || '',
+                minIdleSession: outbound.min_idle_session
             }
         case 'http':
             return {
@@ -580,6 +607,31 @@ function parseSnell(uri) {
             version: parsePort(params.get('version') || params.get('v'), 3),
             obfs: params.get('obfs') || '',
             obfsHost: params.get('obfs-host') || params.get('obfs_host') || ''
+        }
+    } catch {
+        return null
+    }
+}
+
+function parseAnyTLS(uri) {
+    try {
+        const url = new URL(uri)
+        const params = url.searchParams
+        return {
+            type: 'anytls',
+            name: safeDecode(url.hash.slice(1)) || 'AnyTLS Node',
+            server: url.hostname,
+            port: parsePort(url.port, 443),
+            password: safeDecode(url.username) || params.get('password') || '',
+            sni: params.get('sni') || params.get('peer') || params.get('host') || url.hostname,
+            alpn: params.get('alpn') ? params.get('alpn').split(',').filter(Boolean) : [],
+            insecure: ['1', 'true'].includes(String(params.get('insecure') || params.get('allow_insecure') || '').toLowerCase()),
+            fingerprint: params.get('fp') || params.get('fingerprint') || params.get('client-fingerprint') || 'chrome',
+            idleSessionCheckInterval: params.get('idle-session-check-interval') || params.get('idle_session_check_interval') || '',
+            idleSessionTimeout: params.get('idle-session-timeout') || params.get('idle_session_timeout') || '',
+            minIdleSession: params.has('min-idle-session')
+                ? parsePort(params.get('min-idle-session'), 0)
+                : (params.has('min_idle_session') ? parsePort(params.get('min_idle_session'), 0) : undefined)
         }
     } catch {
         return null

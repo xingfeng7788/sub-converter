@@ -8,6 +8,7 @@ import shortlinkRouter from './routes/shortlink.js'
 import healthRouter from './routes/health.js'
 import mergeRouter from './routes/merge.js'
 import { getRulePresets } from './utils/rules.js'
+import { contentTypeForTarget, extensionForTarget, supportedTargets } from './utils/targets.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -27,6 +28,14 @@ app.use('/s', shortlinkRouter)
 
 app.get('/api/rules/presets', (req, res) => {
     res.json(getRulePresets())
+})
+
+app.get('/api/targets', (req, res) => {
+    res.json(supportedTargets().map(id => ({
+        id,
+        contentType: contentTypeForTarget(id),
+        extension: extensionForTarget(id)
+    })))
 })
 
 const serverHealth = (req, res) => {
@@ -54,10 +63,12 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' })
 })
 
-app.listen(PORT, () => {
-    console.log(`LaoWang Sub-converter server running on port ${PORT}`)
-    console.log(`API: http://localhost:${PORT}/api`)
-    console.log(`Health: http://localhost:${PORT}/healthz`)
-})
+if (path.resolve(process.argv[1] || '') === path.resolve(__filename)) {
+    app.listen(PORT, () => {
+        console.log(`LaoWang Sub-converter server running on port ${PORT}`)
+        console.log(`API: http://localhost:${PORT}/api`)
+        console.log(`Health: http://localhost:${PORT}/healthz`)
+    })
+}
 
 export default app

@@ -2,6 +2,8 @@ import express from 'express'
 import net from 'net'
 import { parseSubscription } from '../utils/parsers.js'
 import { convertToTarget } from '../utils/converters.js'
+import { extensionForTarget, isSupportedTarget, normalizeTarget, supportedTargets } from '../utils/targets.js'
+import { fetchSubscriptionContent } from '../utils/subscription.js'
 
 const router = express.Router()
 
@@ -41,18 +43,22 @@ router.post('/check', async (req, res) => {
             nodes: directNodes,
             timeout = 5000,
             concurrent = 10,
-            exportTarget = 'v2rayn'
+            exportTarget: rawExportTarget = 'v2rayn'
         } = req.body
 
         let nodes = []
+        const exportTarget = normalizeTarget(rawExportTarget)
+
+        if (!isSupportedTarget(exportTarget)) {
+            return res.status(400).json({
+                error: 'Invalid export target',
+                supported: supportedTargets()
+            })
+        }
 
         if (url) {
             try {
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': 'LaoWang-Sub-Converter/1.0' }
-                })
-                if (!response.ok) return res.status(502).json({ error: 'Failed to fetch subscription' })
-                nodes = parseSubscription(await response.text())
+                nodes = parseSubscription(await fetchSubscriptionContent(url))
             } catch (e) {
                 return res.status(400).json({ error: 'Failed to parse subscription: ' + e.message })
             }
@@ -70,7 +76,7 @@ router.post('/check', async (req, res) => {
                 summary: { total: 0, online: 0, offline: 0, avgLatency: 0, minLatency: 0, maxLatency: 0 },
                 exportTarget,
                 exportConfig: '',
-                exportFileName: `online-nodes.${exportExtension(exportTarget)}`
+                exportFileName: `online-nodes.${extensionForTarget(exportTarget)}`
             })
         }
 
@@ -125,7 +131,7 @@ router.post('/check', async (req, res) => {
             },
             exportTarget,
             exportConfig,
-            exportFileName: `online-nodes.${exportExtension(exportTarget)}`
+            exportFileName: `online-nodes.${extensionForTarget(exportTarget)}`
         })
     } catch (error) {
         console.error('Health check error:', error)
@@ -138,12 +144,5 @@ router.get('/ping', async (req, res) => {
     if (!server || !port) return res.status(400).json({ error: 'Server and port are required' })
     res.json(await testNodeConnection(server, Number(port), Number(timeout)))
 })
-
-function exportExtension(target) {
-    if (['singbox', 'sing-box', 'nekobox', 'hiddify', 'sfa', 'sfi', 'sfm'].includes(target)) return 'json'
-    if (['clash', 'clashmeta', 'mihomo', 'stash', 'clashverge', 'clash-verge', 'clashnyanpasu', 'clash-nyanpasu', 'flclash'].includes(target)) return 'yaml'
-    if (['surge', 'loon', 'surfboard'].includes(target)) return 'conf'
-    return 'txt'
-}
 
 export default router

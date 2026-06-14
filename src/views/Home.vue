@@ -28,6 +28,7 @@
           <span>Hysteria2</span>
           <span>TUIC</span>
           <span>Snell</span>
+          <span>AnyTLS</span>
           <span>HTTP / SOCKS5</span>
           <span>Clash / sing-box</span>
         </div>

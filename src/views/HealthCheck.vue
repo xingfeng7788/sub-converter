@@ -32,11 +32,17 @@
             <span>导出格式</span>
             <select v-model="exportTarget">
               <option value="v2rayn">V2RayN / 分享链接</option>
+              <option value="v2rayng">V2RayNG / 分享链接</option>
+              <option value="shadowrocket">Shadowrocket 分享链接</option>
+              <option value="clash">Clash YAML</option>
               <option value="clashmeta">Clash Meta YAML</option>
               <option value="mihomo">Mihomo YAML</option>
+              <option value="stash">Stash YAML</option>
               <option value="singbox">sing-box JSON</option>
               <option value="hiddify">Hiddify JSON</option>
-              <option value="shadowrocket">Shadowrocket 分享链接</option>
+              <option value="nekobox">NekoBox JSON</option>
+              <option value="surge">Surge CONF</option>
+              <option value="loon">Loon CONF</option>
             </select>
           </label>
 

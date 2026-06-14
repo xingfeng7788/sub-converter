@@ -1,13 +1,10 @@
 import yaml from 'js-yaml'
 import { applyRulePreset } from './rules.js'
 import { base64 } from './parsers.js'
-
-const YAML_TARGETS = new Set(['clash', 'clashmeta', 'mihomo', 'stash', 'clashverge', 'clash-verge', 'clashnyanpasu', 'clash-nyanpasu', 'flclash'])
-const BASE64_TARGETS = new Set(['shadowrocket', 'v2rayn', 'v2rayng', 'v2rayu'])
-const SING_BOX_TARGETS = new Set(['singbox', 'sing-box', 'nekobox', 'hiddify', 'sfa', 'sfi', 'sfm'])
+import { BASE64_TARGETS, SING_BOX_TARGETS, YAML_TARGETS, normalizeTarget } from './targets.js'
 
 export function convertToTarget(nodes, target, options = {}) {
-    const normalized = String(target || '').toLowerCase()
+    const normalized = normalizeTarget(target)
     const safeOptions = {
         udp: options.udp !== false,
         skipCert: options.skipCert === true,
@@ -147,6 +144,20 @@ function toClashProxy(node, options, target) {
                 'udp-relay-mode': node.udpRelayMode || 'native',
                 'reduce-rtt': true
             }
+        case 'anytls':
+            if (!extended) return null
+            return dropUndefined({
+                ...base,
+                type: 'anytls',
+                password: node.password,
+                sni: node.sni || undefined,
+                alpn: node.alpn?.length ? node.alpn : undefined,
+                'skip-cert-verify': node.insecure || options.skipCert,
+                'client-fingerprint': node.fingerprint || undefined,
+                'idle-session-check-interval': node.idleSessionCheckInterval || undefined,
+                'idle-session-timeout': node.idleSessionTimeout || undefined,
+                'min-idle-session': node.minIdleSession ?? undefined
+            })
         case 'snell':
             if (!extended) return null
             return dropUndefined({
@@ -198,12 +209,14 @@ function withTransport(proxy, node) {
 }
 
 function convertToSurge(nodes, options) {
+    const proxies = nodes
+        .map(node => ({ node, line: toSurgeLine(node, options) }))
+        .filter(item => item.line)
     const lines = ['[Proxy]']
-    for (const node of nodes) {
-        const line = toSurgeLine(node, options)
-        if (line) lines.push(line)
-    }
-    lines.push('', '[Proxy Group]', `PROXY = select, ${nodes.map(n => n.name).join(', ')}`)
+    for (const proxy of proxies) lines.push(proxy.line)
+    if (!proxies.length) return ''
+
+    lines.push('', '[Proxy Group]', `PROXY = select, ${proxies.map(item => item.node.name).join(', ')}`)
     lines.push('', '[Rule]', 'GEOIP,CN,DIRECT', 'FINAL,PROXY')
     return lines.join('\n')
 }
@@ -237,6 +250,18 @@ function toSurgeLine(node, options) {
                 node.obfs && `obfs=${node.obfs}`,
                 node.obfsHost && `obfs-host=${node.obfsHost}`
             ])
+        case 'tuic':
+            return appendParts(`${node.name} = tuic, ${node.server}, ${node.port}, token=${node.token || node.password}`, [
+                node.alpn?.length && `alpn=${node.alpn[0]}`,
+                node.sni && `sni=${node.sni}`,
+                (node.insecure || options.skipCert) && 'skip-cert-verify=true',
+                options.udp && 'udp-relay=true'
+            ])
+        case 'anytls':
+            return appendParts(`${node.name} = anytls, ${node.server}, ${node.port}, password=${node.password}`, [
+                node.sni && `sni=${node.sni}`,
+                (node.insecure || options.skipCert) && 'skip-cert-verify=true'
+            ])
         case 'http':
             return appendParts(`${node.name} = http, ${node.server}, ${node.port}`, [
                 node.username && `username=${node.username}`,
@@ -269,14 +294,28 @@ function convertToQuantumultX(nodes, options) {
                     node.ws?.headers?.Host && `obfs-host=${node.ws.headers.Host}`,
                     options.skipCert && 'tls-verification=false'
                 ])
+            case 'vless':
+                return appendParts(`vless=${node.server}:${node.port}, method=none, password=${node.uuid}, tag=${node.name}`, [
+                    node.ws ? (node.tls ? 'obfs=wss' : 'obfs=ws') : (node.tls && 'obfs=over-tls'),
+                    node.sni && `tls-host=${node.sni}`,
+                    node.flow && `vless-flow=${node.flow}`,
+                    node.reality?.publicKey && `reality-base64-pubkey=${node.reality.publicKey}`,
+                    node.reality?.shortId && `reality-hex-shortid=${node.reality.shortId}`,
+                    node.ws?.path && `obfs-uri=${node.ws.path}`,
+                    node.ws?.headers?.Host && `obfs-host=${node.ws.headers.Host}`,
+                    `udp-relay=${options.udp}`,
+                    options.skipCert && 'tls-verification=false'
+                ])
             case 'trojan':
                 return appendParts(`trojan=${node.server}:${node.port}, password=${node.password}, tag=${node.name}`, [
                     node.sni && `tls-host=${node.sni}`,
                     options.skipCert && 'tls-verification=false'
                 ])
-            case 'hysteria2':
-                return appendParts(`hysteria2=${node.server}:${node.port}, password=${node.password}, tag=${node.name}`, [
-                    node.sni && `sni=${node.sni}`,
+            case 'anytls':
+                return appendParts(`anytls=${node.server}:${node.port}, password=${node.password}, tag=${node.name}`, [
+                    'over-tls=true',
+                    node.sni && `tls-host=${node.sni}`,
+                    `udp-relay=${options.udp}`,
                     (node.insecure || options.skipCert) && 'tls-verification=false'
                 ])
             case 'http':
@@ -302,7 +341,17 @@ function convertToLoon(nodes, options) {
     return nodes.map(node => {
         switch (node.type) {
             case 'ss':
-                return `${node.name} = Shadowsocks,${node.server},${node.port},${node.method},"${node.password}"`
+                return appendParts(`${node.name} = Shadowsocks,${node.server},${node.port},${node.method},"${node.password}"`, [
+                    `udp=${options.udp}`
+                ])
+            case 'ssr':
+                return appendParts(`${node.name} = ShadowsocksR,${node.server},${node.port},${node.method},"${node.password}"`, [
+                    node.protocol && `protocol=${node.protocol}`,
+                    node.protocolParam && `protocol-param=${node.protocolParam}`,
+                    node.obfs && `obfs=${node.obfs}`,
+                    node.obfsParam && `obfs-param=${node.obfsParam}`,
+                    `udp=${options.udp}`
+                ])
             case 'vmess':
                 return appendParts(`${node.name} = vmess,${node.server},${node.port},auto,"${node.uuid}"`, [
                     node.ws && 'transport=ws',
@@ -310,6 +359,21 @@ function convertToLoon(nodes, options) {
                     node.ws?.headers?.Host && `host=${node.ws.headers.Host}`,
                     node.tls && 'over-tls=true',
                     node.sni && `tls-name=${node.sni}`,
+                    options.skipCert && 'skip-cert-verify=true'
+                ])
+            case 'vless':
+                return appendParts(`${node.name} = VLESS,${node.server},${node.port},"${node.uuid}"`, [
+                    node.ws && 'transport=ws',
+                    node.ws?.path && `path=${node.ws.path}`,
+                    node.ws?.headers?.Host && `host=${node.ws.headers.Host}`,
+                    node.tls && 'over-tls=true',
+                    node.sni && `tls-name=${node.sni}`,
+                    node.flow && `flow=${node.flow}`,
+                    node.reality && 'reality=true',
+                    node.reality?.publicKey && `public-key=${node.reality.publicKey}`,
+                    node.reality?.shortId && `short-id=${node.reality.shortId}`,
+                    node.reality?.fingerprint && `client-fingerprint=${node.reality.fingerprint}`,
+                    `udp=${options.udp}`,
                     options.skipCert && 'skip-cert-verify=true'
                 ])
             case 'trojan':
@@ -320,6 +384,14 @@ function convertToLoon(nodes, options) {
             case 'hysteria2':
                 return appendParts(`${node.name} = Hysteria2,${node.server},${node.port},"${node.password}"`, [
                     node.sni && `sni=${node.sni}`,
+                    node.obfsPassword && `salamander-password=${node.obfsPassword}`,
+                    `udp=${options.udp}`,
+                    (node.insecure || options.skipCert) && 'skip-cert-verify=true'
+                ])
+            case 'anytls':
+                return appendParts(`${node.name} = AnyTLS,${node.server},${node.port},"${node.password}"`, [
+                    node.sni && `sni=${node.sni}`,
+                    `udp=${options.udp}`,
                     (node.insecure || options.skipCert) && 'skip-cert-verify=true'
                 ])
             case 'http':
@@ -429,6 +501,16 @@ function toShareLink(node) {
                 ...(node.obfs ? { obfs: node.obfs } : {}),
                 ...(node.obfsHost ? { 'obfs-host': node.obfsHost } : {})
             }).toString()}#${encodeURIComponent(node.name)}`
+        case 'anytls':
+            return `anytls://${encodeURIComponent(node.password)}@${node.server}:${node.port}?${new URLSearchParams({
+                sni: node.sni || node.server,
+                ...(node.alpn?.length ? { alpn: node.alpn.join(',') } : {}),
+                ...(node.fingerprint ? { fp: node.fingerprint } : {}),
+                ...(node.insecure ? { insecure: '1' } : {}),
+                ...(node.idleSessionCheckInterval ? { 'idle-session-check-interval': String(node.idleSessionCheckInterval) } : {}),
+                ...(node.idleSessionTimeout ? { 'idle-session-timeout': String(node.idleSessionTimeout) } : {}),
+                ...(node.minIdleSession !== undefined ? { 'min-idle-session': String(node.minIdleSession) } : {})
+            }).toString()}#${encodeURIComponent(node.name)}`
         case 'http':
             return `${node.tls ? 'https' : 'http'}://${authPrefix(node)}${node.server}:${node.port}#${encodeURIComponent(node.name)}`
         case 'socks5':
@@ -471,7 +553,7 @@ function toSingBoxOutbound(node, options) {
                 uuid: node.uuid,
                 flow: node.flow || undefined,
                 tls: node.tls ? {
-                    ...tlsConfig(node.sni || node.server, options.skipCert),
+                    ...tlsConfig(node.sni || node.server, options.skipCert, undefined, node.reality?.fingerprint),
                     reality: node.reality ? {
                         enabled: true,
                         public_key: node.reality.publicKey,
@@ -514,6 +596,16 @@ function toSingBoxOutbound(node, options) {
                 udp_relay_mode: node.udpRelayMode || 'native',
                 tls: tlsConfig(node.sni || node.server, node.insecure || options.skipCert, node.alpn || ['h3'])
             }
+        case 'anytls':
+            return {
+                ...base,
+                type: 'anytls',
+                password: node.password,
+                idle_session_check_interval: node.idleSessionCheckInterval || undefined,
+                idle_session_timeout: node.idleSessionTimeout || undefined,
+                min_idle_session: node.minIdleSession ?? undefined,
+                tls: tlsConfig(node.sni || node.server, node.insecure || options.skipCert, node.alpn, node.fingerprint)
+            }
         case 'http':
             return {
                 ...base,
@@ -552,12 +644,13 @@ function withSingBoxTransport(outbound, node) {
     return dropUndefined(outbound)
 }
 
-function tlsConfig(serverName, insecure, alpn) {
+function tlsConfig(serverName, insecure, alpn, fingerprint) {
     return dropUndefined({
         enabled: true,
         server_name: serverName,
         insecure,
-        alpn
+        alpn,
+        utls: fingerprint ? { enabled: true, fingerprint } : undefined
     })
 }
 

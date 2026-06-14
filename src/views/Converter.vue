@@ -57,7 +57,10 @@
         </section>
 
         <ClientSelector v-model="selectedClient" />
-        <AdvancedOptions v-model="advancedOptions" />
+        <AdvancedOptions
+          :model-value="advancedOptions"
+          @update:model-value="updateAdvancedOptions"
+        />
 
         <section class="action-bar">
           <button class="primary-action" @click="convertSubscription" :disabled="!canConvert || loading">
@@ -112,6 +115,10 @@ const advancedOptions = reactive({
 
 const currentApi = computed(() => apiSources.find(api => api.id === selectedApi.value) || apiSources[0])
 const canConvert = computed(() => subscriptionUrl.value.trim() && selectedClient.value)
+
+const updateAdvancedOptions = value => {
+  Object.assign(advancedOptions, value || {})
+}
 
 const convertSubscription = async () => {
   if (!canConvert.value) return

@@ -20,15 +20,20 @@
           <label class="field">
             <span>目标客户端</span>
             <select v-model="target">
+              <option value="clash">Clash</option>
               <option value="clashmeta">Clash Meta</option>
               <option value="mihomo">Mihomo</option>
               <option value="stash">Stash</option>
               <option value="singbox">sing-box</option>
               <option value="hiddify">Hiddify</option>
+              <option value="nekobox">NekoBox</option>
               <option value="surge">Surge</option>
+              <option value="surfboard">Surfboard</option>
               <option value="quantumultx">Quantumult X</option>
+              <option value="loon">Loon</option>
               <option value="shadowrocket">Shadowrocket</option>
               <option value="v2rayn">V2RayN</option>
+              <option value="v2rayng">V2RayNG</option>
             </select>
           </label>
 
