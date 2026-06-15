@@ -18,7 +18,7 @@ ENV PORT=3000
 ENV DATA_DIR=/app/data
 
 COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev --omit=optional --ignore-scripts --no-audit --no-fund && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
 COPY server ./server
