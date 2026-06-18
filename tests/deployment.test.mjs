@@ -9,6 +9,8 @@ assert.match(dockerfile, /APP_UID=10001/)
 assert.match(dockerfile, /APP_GID=10001/)
 assert.match(dockerfile, /USER app/)
 assert.match(dockerfile, /\/healthz/)
+assert.match(dockerfile, /COPY server \.\/server/)
+assert.match(dockerfile, /COPY shared \.\/shared/)
 
 assert.match(deployScript, /chown -R "\$\{APP_UID\}:\$\{APP_GID\}" "\$DATA_DIR"/)
 assert.match(deployScript, /docker container inspect/)

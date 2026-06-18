@@ -25,6 +25,7 @@ RUN npm ci --omit=dev --omit=optional --ignore-scripts --no-audit --no-fund && n
 
 COPY --from=builder /app/dist ./dist
 COPY server ./server
+COPY shared ./shared
 
 RUN addgroup -S -g "${APP_GID}" app \
     && adduser -S -D -H -u "${APP_UID}" -G app app \
