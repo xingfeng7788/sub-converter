@@ -5,13 +5,13 @@ Production-ready private subscription converter with a web console and backend A
 ## Quick Deploy
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash
 ```
 
 Defaults:
 
 ```text
-Image: ghcr.io/tony-wang1990/laowang-sub-converter:latest
+Image: qq510023514/sub-converter:latest
 Install dir: /opt/laowang-sub-converter
 Data dir: /opt/laowang-sub-converter/data
 Port: 3000
@@ -21,13 +21,13 @@ URL: http://SERVER_IP:3000
 Update:
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s update
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s update
 ```
 
 Logs:
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s logs
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s logs
 ```
 
 ## Features

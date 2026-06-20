@@ -1,128 +1,47 @@
-name: Docker Build and Publish
+name: Build and Push Docker Image
 
 on:
+  release:
+    types: [published]
   push:
-    branches: [main]
-    tags: ['v*']
-  pull_request:
-    branches: [main]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
-env:
-  IMAGE_NAME: laowang-sub-converter
-
 jobs:
-  quality:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Check deployment script
-        run: bash -n scripts/deploy.sh
-
-      - name: Test
-        run: npm test
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Audit dependencies
-        run: npm run audit
-
-  docker:
-    needs: quality
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: GHCR metadata
-        id: meta-ghcr
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to GHCR
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ secrets.DOCKERHUB_USERNAME }}/sub-converter
+        tags: |
+          type=raw,value=latest
+          type=ref,event=tag
 
-      - name: Build and push GHCR image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-ghcr.outputs.tags }}
-          labels: ${{ steps.meta-ghcr.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Docker Hub metadata
-        if: github.event_name != 'pull_request' && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
-        id: meta-dockerhub
-        uses: docker/metadata-action@v5
-        with:
-          images: docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-
-      - name: Login to Docker Hub
-        if: github.event_name != 'pull_request' && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
-        uses: docker/login-action@v3
-        with:
-          registry: docker.io
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker Hub image
-        if: github.event_name != 'pull_request' && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta-dockerhub.outputs.tags }}
-          labels: ${{ steps.meta-dockerhub.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

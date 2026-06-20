@@ -1,15 +1,24 @@
-# LaoWang Sub Converter
+# 订阅转换 (Sub Converter)
 
-一个可私有化部署的订阅转换和节点整理工具。前端提供控制台 UI，后端提供转换、合并、健康检测、短链接和目标客户端导出 API。
+一个高度现代化、可私有化部署的订阅转换和节点整理工具。前端提供极具质感的极简控制台 UI，后端提供转换、合并、健康检测、短链接和目标客户端导出 API。
 
-## 功能
+## 界面展示
 
-- 订阅转换：把订阅地址转换成 Clash、Mihomo、Surge、Loon、Quantumult X、Shadowrocket、V2RayN、sing-box 等客户端格式。
-- 订阅合并：批量拉取多个订阅，支持去重、排序、地区标识、关键词过滤和重命名。
-- 节点检测：从服务器侧检测节点 TCP 连通性，导出在线节点。
-- 短链接：把长订阅地址生成固定短码，支持访问统计和删除。
-- 二维码：转换结果可生成订阅二维码，分享链接目标可生成单节点二维码。
-- Docker 部署：提供 GHCR 多架构镜像和服务器一键脚本。
+| 订阅转换 | 订阅合并 |
+| :---: | :---: |
+| ![订阅转换](docs/images/订阅转换.png) | ![订阅合并](docs/images/订阅合并.png) |
+| **节点检测** | **短链接** |
+| ![节点检测](docs/images/节点检测.png) | ![短链接](docs/images/短链接.png) |
+
+## 核心功能
+
+- **订阅转换**：把订阅地址转换成 Clash、Mihomo、Surge、Loon、Quantumult X、Shadowrocket、V2RayN、sing-box 等客户端格式。
+- **订阅合并**：批量拉取多个订阅，支持去重、排序、地区标识、关键词过滤和重命名。
+- **节点检测**：从服务器侧检测节点 TCP 连通性，一键剔除无效节点并导出在线节点。
+- **短链接**：把长订阅地址生成固定短码，支持生成时自动缩短，并提供访问统计和管理功能。
+- **二维码解析**：转换结果可直接生成订阅二维码，分享链接目标可生成单节点二维码。
+- **黑白双生主题**：提供专业级暗黑模式与极致清爽明亮模式，跟随系统自动无缝切换。
+- **Docker 部署**：提供 GHCR 多架构镜像和服务器一键脚本。
 
 ## 支持范围
 
@@ -37,13 +46,13 @@ V2RayN, V2RayNG, V2RayU, NekoBox, Hiddify, sing-box, SFA, SFI, SFM
 推荐在 Ubuntu、Debian、CentOS 等 Linux 服务器上执行：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash
 ```
 
 默认参数：
 
 ```text
-镜像：ghcr.io/tony-wang1990/laowang-sub-converter:latest
+镜像：qq510023514/sub-converter:latest
 安装目录：/opt/laowang-sub-converter
 数据目录：/opt/laowang-sub-converter/data
 访问端口：3000
@@ -53,43 +62,43 @@ curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converte
 指定端口：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo env PORT=8080 bash
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo env PORT=8080 bash
 ```
 
 更新到最新镜像：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s update
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s update
 ```
 
 查看状态：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s status
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s status
 ```
 
 查看日志：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s logs
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s logs
 ```
 
 卸载容器，保留数据目录：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s uninstall
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s uninstall
 ```
 
 如果需要允许服务端拉取本机或内网订阅地址：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo env ALLOW_PRIVATE_SUBSCRIPTION_URLS=1 bash
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo env ALLOW_PRIVATE_SUBSCRIPTION_URLS=1 bash
 ```
 
 使用 HTTPS 域名反向代理时，可固定短链接公网地址：
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" |
+curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/scripts/deploy.sh?$(date +%s)" |
   sudo env PUBLIC_BASE_URL=https://sub.example.com bash
 ```
 
@@ -106,7 +115,7 @@ docker run -d \
   -e DATA_DIR=/app/data \
   -v /opt/laowang-sub-converter/data:/app/data \
   --restart unless-stopped \
-  ghcr.io/tony-wang1990/laowang-sub-converter:latest
+  qq510023514/sub-converter:latest
 ```
 
 Docker Compose：
@@ -114,7 +123,7 @@ Docker Compose：
 ```yaml
 services:
   laowang-sub-converter:
-    image: ghcr.io/tony-wang1990/laowang-sub-converter:latest
+    image: qq510023514/sub-converter:latest
     container_name: laowang-sub-converter
     environment:
       NODE_ENV: production
@@ -273,9 +282,9 @@ npm run audit
 推送到 `main` 后，GitHub Actions 会构建并发布：
 
 ```text
-ghcr.io/tony-wang1990/laowang-sub-converter:latest
-ghcr.io/tony-wang1990/laowang-sub-converter:main
-ghcr.io/tony-wang1990/laowang-sub-converter:sha-xxxxxxx
+qq510023514/sub-converter:latest
+qq510023514/sub-converter:main
+qq510023514/sub-converter:sha-xxxxxxx
 ```
 
 支持 `linux/amd64` 和 `linux/arm64`。
