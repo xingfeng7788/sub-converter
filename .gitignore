@@ -53,3 +53,4 @@ data/
 .cache/
 .parcel-cache/
 .turbo/
+/custom_templates.json

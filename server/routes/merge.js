@@ -1,6 +1,7 @@
 import express from 'express'
 import { parseSubscription } from '../utils/parsers.js'
 import { convertToTarget } from '../utils/converters.js'
+import { resolveTemplate } from '../utils/templateResolver.js'
 import { applyNodeOptions, boolOption, dedupeNodes } from '../utils/nodes.js'
 import { contentTypeForTarget, extensionForTarget, isSupportedTarget, normalizeTarget, supportedTargets } from '../utils/targets.js'
 import { fetchSubscriptionContent } from '../utils/subscription.js'
@@ -83,10 +84,18 @@ router.post('/', async (req, res) => {
             return res.status(422).json({ error: 'No supported nodes found in subscriptions' })
         }
 
+        let resolvedPreset = rulePreset;
+        if (rulePreset && rulePreset !== 'basic' && rulePreset !== 'standard' && rulePreset !== 'developer' && rulePreset !== 'gaming' && rulePreset !== 'streaming') {
+            const dynamicTemplate = await resolveTemplate(rulePreset);
+            if (dynamicTemplate) {
+                resolvedPreset = dynamicTemplate;
+            }
+        }
+
         const output = convertToTarget(allNodes, target, {
             udp: boolOption(udp, true),
             skipCert: boolOption(skipCert, false),
-            rulePreset
+            rulePreset: resolvedPreset
         })
         if (!output || !output.trim()) {
             return res.status(422).json({ error: 'No nodes can be converted to the selected target client' })

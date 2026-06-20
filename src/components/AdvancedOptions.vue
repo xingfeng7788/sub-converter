@@ -24,10 +24,7 @@
           <span>分流规则模板{{ rulePresetEnabled ? '' : '（仅 YAML 客户端）' }}</span>
           <select class="select" v-model="options.rulePreset" :disabled="!rulePresetEnabled">
             <option value="">基础兼容规则</option>
-            <option value="standard">标准日常分流</option>
-            <option value="developer">开发工具分流</option>
-            <option value="gaming">游戏低延迟分流</option>
-            <option value="streaming">流媒体服务分流</option>
+            <option v-for="preset in availablePresets" :key="preset.id" :value="preset.id">{{ preset.name }}</option>
           </select>
         </label>
 
@@ -87,6 +84,16 @@ const switches = [
   { key: 'skipCert', label: '跳过证书校验', hint: '适合自签名或特殊 TLS 节点。' },
   { key: 'sort', label: '节点排序', hint: '按名称整理输出顺序。' }
 ]
+
+const availablePresets = ref([])
+
+fetch('/api/rules/presets')
+  .then(res => res.json())
+  .then(data => {
+    // Basic is hardcoded, so remove it from fetched list if present
+    availablePresets.value = data.filter(p => p.id !== 'basic')
+  })
+  .catch(console.error)
 
 watch(options, value => emit('update:modelValue', { ...value }), { deep: true, immediate: true })
 </script>

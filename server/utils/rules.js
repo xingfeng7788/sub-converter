@@ -1,3 +1,11 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { getCustomTemplates } from './templateResolver.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const GROUPS = {
     select: '🚀 节点选择',
     auto: '♻️ 自动选择',
@@ -152,13 +160,15 @@ export const rulePresets = {
 }
 
 export function getRulePresets() {
-    return Object.entries(rulePresets).map(([id, preset]) => ({
+    const builtins = Object.entries(rulePresets).map(([id, preset]) => ({
         id,
         name: preset.name,
         description: preset.description,
         groupCount: preset.groups.length,
         ruleCount: preset.rules.length
     }))
+    const customs = getCustomTemplates()
+    return builtins.concat(customs)
 }
 
 export function getRulePreset(presetId) {
@@ -171,17 +181,77 @@ export function applyRulePreset(nodeNames, presetId = 'basic') {
             .map(item => typeof item === 'string' ? item : item?.name)
             .filter(Boolean)
         : []
-    const preset = getRulePreset(presetId)
+    const preset = typeof presetId === 'object' && presetId !== null ? presetId : getRulePreset(presetId)
+    const presetIdStr = typeof presetId === 'string' ? presetId : 'custom'
     const groups = preset.groups.map(group => {
-        const proxies = group.type === 'url-test'
-            ? [...names]
-            : [...group.proxies, ...((group.name === GROUPS.select) ? names : [])]
+        let proxies = [];
+        
+        if (group.filter && group.filter.length > 0) {
+            for (const name of names) {
+                for (const pattern of group.filter) {
+                    try {
+                        if (new RegExp(pattern, 'i').test(name)) {
+                            proxies.push(name);
+                            break;
+                        }
+                    } catch (e) {}
+                }
+            }
+        }
+        
+        if (group.proxies && group.proxies.length > 0) {
+             proxies.push(...group.proxies);
+        }
+
+        if (!group.filter || group.filter.length === 0) {
+            if (group.type === 'url-test' || group.type === 'fallback' || group.type === 'load-balance') {
+                if (!group.proxies || group.proxies.length === 0) {
+                    proxies.push(...names);
+                }
+            } else if (group.name === GROUPS.select && (!group.proxies || group.proxies.length === 0)) {
+                proxies.push(...names);
+            }
+        }
+
+        const { filter, ...groupWithoutFilter } = group;
+        let finalProxies = [...new Set(proxies)].filter(Boolean);
+        
+        if (finalProxies.length === 0) {
+            finalProxies = ['DIRECT'];
+        }
 
         return {
-            ...group,
-            proxies: [...new Set(proxies)].filter(Boolean)
+            ...groupWithoutFilter,
+            proxies: finalProxies
         }
     })
+
+    const existingGroupNames = new Set(groups.map(g => g.name));
+    
+    existingGroupNames.add('DIRECT');
+    existingGroupNames.add('REJECT');
+    existingGroupNames.add('no-resolve');
+
+    for (const rule of preset.rules) {
+        const parts = rule.split(',');
+        if (parts.length >= 2) {
+            let targetGroup = '';
+            if (parts[0] === 'MATCH' || parts[0] === 'FINAL') {
+                targetGroup = parts[1];
+            } else if (parts.length >= 3) {
+                targetGroup = parts[2];
+            }
+            
+            if (targetGroup && !existingGroupNames.has(targetGroup)) {
+                groups.push({
+                    name: targetGroup,
+                    type: 'select',
+                    proxies: ['DIRECT']
+                });
+                existingGroupNames.add(targetGroup);
+            }
+        }
+    }
 
     return {
         proxyGroups: groups,

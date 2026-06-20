@@ -11,6 +11,7 @@ services:
       - "3000:3000"
     volumes:
       - laowang-data:/app/data
+      - ./custom_templates.json:/app/custom_templates.json:ro
     restart: unless-stopped
     read_only: true
     tmpfs:

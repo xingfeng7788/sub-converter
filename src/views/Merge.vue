@@ -30,10 +30,7 @@
             <span>规则模板{{ supportsRulePreset ? '' : '（仅 YAML 客户端）' }}</span>
             <select class="select" v-model="options.rulePreset" :disabled="!supportsRulePreset">
               <option value="">基础兼容规则</option>
-              <option value="standard">标准日常分流</option>
-              <option value="developer">开发工具分流</option>
-              <option value="gaming">游戏低延迟分流</option>
-              <option value="streaming">流媒体服务分流</option>
+              <option v-for="preset in availablePresets" :key="preset.id" :value="preset.id">{{ preset.name }}</option>
             </select>
           </label>
 
@@ -157,6 +154,16 @@ const urls = computed(() => urlsContent.value
   .map(url => url.trim())
   .filter(url => /^https?:\/\//i.test(url)))
 const supportsRulePreset = computed(() => getTargetDefinition(target.value)?.format === 'yaml')
+
+const availablePresets = ref([])
+
+fetch('/api/rules/presets')
+  .then(res => res.json())
+  .then(data => {
+    // Basic is hardcoded, so remove it from fetched list if present
+    availablePresets.value = data.filter(p => p.id !== 'basic')
+  })
+  .catch(console.error)
 
 const previewMerge = async () => {
   loading.value = true
