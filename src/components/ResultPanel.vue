@@ -299,7 +299,7 @@ h3 {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--overlay);
   cursor: pointer;
 }
 
@@ -317,7 +317,7 @@ h3 {
 .qr-tabs button.active {
   border-color: var(--line-strong);
   color: var(--accent);
-  background: rgba(49, 214, 255, 0.07);
+  background: var(--overlay-hover);
 }
 
 .icon-button:disabled {
@@ -350,7 +350,7 @@ h3 {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--overlay);
 }
 
 .qr-card canvas {

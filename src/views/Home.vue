@@ -1,42 +1,6 @@
 <template>
   <main class="page">
     <section class="page-shell stack">
-      <section class="home-hero hero-surface">
-        <div class="hero-copy">
-          <p class="section-label">SUBSCRIPTION COMMAND CENTER</p>
-          <h1 class="title-xl">订阅转换、合并、检测和导入的一体化控制台</h1>
-          <p class="subtitle">
-            面向 Mihomo、Clash Meta、Surge、Loon、Quantumult X、Shadowrocket、sing-box、V2RayN、Hiddify 等客户端，
-            提供稳定的格式转换、节点整理、健康检测、短链接和二维码导入。
-          </p>
-          <div class="hero-actions">
-            <router-link class="btn btn-primary" to="/converter">
-              <Rocket :size="18" />
-              <span>开始转换</span>
-            </router-link>
-            <router-link class="btn btn-secondary" to="/merge">
-              <GitMerge :size="18" />
-              <span>合并订阅</span>
-            </router-link>
-          </div>
-        </div>
-
-        <div class="command-panel">
-          <div class="terminal-head">
-            <span></span>
-            <span></span>
-            <span></span>
-            <strong>runtime</strong>
-          </div>
-          <div class="terminal-body">
-            <div v-for="line in terminalLines" :key="line.label" class="terminal-line">
-              <span>{{ line.label }}</span>
-              <strong>{{ line.value }}</strong>
-            </div>
-          </div>
-          <div class="scanline"></div>
-        </div>
-      </section>
 
       <section class="metric-grid">
         <article v-for="metric in metrics" :key="metric.label" class="metric-card">
@@ -214,9 +178,9 @@ const clients = ['Clash', 'Clash Meta', 'Mihomo', 'Stash', 'Surge', 'Surfboard',
   gap: 16px;
   min-width: 0;
   padding: 14px;
-  border: 1px solid rgba(135, 160, 185, 0.14);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--overlay);
   font-family: var(--mono);
 }
 
@@ -254,7 +218,7 @@ const clients = ['Clash', 'Clash Meta', 'Mihomo', 'Stash', 'Surge', 'Surfboard',
 .module-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(12, 17, 24, 0.76);
+  background: var(--panel-bg);
 }
 
 .metric-card {

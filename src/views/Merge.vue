@@ -1,17 +1,6 @@
 <template>
   <main class="page">
     <section class="page-shell stack">
-      <header class="hero-surface merge-hero">
-        <div>
-          <p class="section-label">MERGE ENGINE</p>
-          <h1 class="title-xl">把多个订阅整理成一份干净配置</h1>
-          <p class="subtitle">
-            批量拉取多个订阅，合并去重、过滤重命名、追加地区标识，并按目标客户端直接导出。
-          </p>
-        </div>
-        <GitMerge :size="34" />
-      </header>
-
       <section class="panel control-panel">
         <label class="field">
           <span>订阅地址列表</span>
@@ -291,7 +280,7 @@ const extensionFor = (client) => {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--overlay);
 }
 
 .summary-card span {
@@ -323,7 +312,7 @@ const extensionFor = (client) => {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--overlay);
 }
 
 .preview-list strong,

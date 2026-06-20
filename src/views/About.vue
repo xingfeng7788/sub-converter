@@ -1,17 +1,6 @@
 <template>
   <main class="page">
     <section class="page-shell stack">
-      <header class="hero-surface deploy-hero">
-        <div>
-          <p class="section-label">PRODUCTION DEPLOYMENT</p>
-          <h1 class="title-xl">生产部署、API 和维护命令</h1>
-          <p class="subtitle">
-            推荐使用 GHCR 官方镜像和一键脚本部署到服务器，短链接数据持久化到宿主机目录，更新和回滚都走 Docker。
-          </p>
-        </div>
-        <ShieldCheck :size="34" />
-      </header>
-
       <section class="grid-2">
         <article class="panel code-card">
           <div class="card-head">
@@ -35,10 +24,10 @@
             </div>
             <Container :size="22" />
           </div>
-          <div class="kv-list">
-            <div><span>镜像</span><strong>ghcr.io/tony-wang1990/laowang-sub-converter:latest</strong></div>
-            <div><span>安装目录</span><strong>/opt/laowang-sub-converter</strong></div>
-            <div><span>数据目录</span><strong>/opt/laowang-sub-converter/data</strong></div>
+            <div class="kv-list">
+              <div><span>镜像</span><strong>sub-converter:latest</strong></div>
+              <div><span>安装目录</span><strong>/opt/sub-converter</strong></div>
+              <div><span>数据目录</span><strong>/opt/sub-converter/data</strong></div>
             <div><span>默认端口</span><strong>3000</strong></div>
           </div>
         </article>
@@ -130,15 +119,7 @@
           </article>
         </div>
 
-        <a
-          class="btn btn-primary repo-link"
-          href="https://github.com/tony-wang1990/laowang-sub-converter"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Github :size="18" />
-          <span>打开 GitHub 仓库</span>
-        </a>
+
       </section>
     </section>
   </main>
@@ -162,12 +143,12 @@ import { TARGET_DEFINITIONS } from '../../shared/targets.js'
 const copied = ref('')
 
 const commands = {
-  install: 'curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash',
-  port: 'curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo env PORT=8080 bash',
-  update: 'curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s update',
-  status: 'curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s status',
-  logs: 'curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s logs',
-  uninstall: 'curl -fsSL "https://raw.githubusercontent.com/tony-wang1990/laowang-sub-converter/main/scripts/deploy.sh?$(date +%s)" | sudo bash -s uninstall'
+  install: 'docker-compose up -d --build',
+  port: '修改 docker-compose.yml 的端口映射',
+  update: 'docker-compose pull && docker-compose up -d',
+  status: 'docker-compose ps',
+  logs: 'docker-compose logs -f --tail 200',
+  uninstall: 'docker-compose down'
 }
 
 const commandCards = [
@@ -336,8 +317,8 @@ code {
   border: 1px solid rgba(49, 214, 255, 0.2);
   border-radius: var(--radius);
   color: var(--text-soft);
-  background: rgba(49, 214, 255, 0.055);
-  font-size: 0.84rem;
+  background: var(--overlay);
+  font-family: var(--mono);
   font-weight: 900;
 }
 

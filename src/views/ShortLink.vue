@@ -1,17 +1,6 @@
 <template>
   <main class="page">
     <section class="page-shell stack">
-      <header class="hero-surface short-hero">
-        <div>
-          <p class="section-label">SHORTLINK REGISTRY</p>
-          <h1 class="title-xl">把长订阅地址压缩成固定短码</h1>
-          <p class="subtitle">
-            为转换后的长链接创建可分享、可统计、可删除的短链接，适合 NAS、移动客户端和团队内部分发。
-          </p>
-        </div>
-        <LinkIcon :size="34" />
-      </header>
-
       <section class="panel control-panel">
         <div class="form-grid">
           <label class="field wide">
@@ -223,7 +212,7 @@ onMounted(loadShortLinks)
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--overlay);
 }
 
 .link-main {
@@ -266,7 +255,7 @@ onMounted(loadShortLinks)
   border: 1px solid var(--line);
   border-radius: var(--radius);
   color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--overlay);
   cursor: pointer;
 }
 

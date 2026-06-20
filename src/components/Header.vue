@@ -2,11 +2,10 @@
   <header class="topbar">
     <router-link to="/" class="brand" @click="closeMenu">
       <span class="brand-symbol">
-        <Network :size="22" />
+        <Zap :size="22" />
       </span>
       <span class="brand-copy">
-        <strong>LaoWang</strong>
-        <small>SUB OPS</small>
+        <strong>订阅转换</strong>
       </span>
     </router-link>
 
@@ -18,15 +17,13 @@
     </nav>
 
     <div class="actions">
-      <a
-        class="icon-action"
-        href="https://github.com/tony-wang1990/laowang-sub-converter"
-        target="_blank"
-        rel="noreferrer"
-        title="GitHub"
-      >
-        <Github :size="19" />
-      </a>
+
+      <button class="icon-action" type="button" @click="cycleTheme" title="切换主题">
+        <Sun v-if="theme === 'light'" :size="18" />
+        <Moon v-else-if="theme === 'dark'" :size="18" />
+        <Monitor v-else :size="18" />
+      </button>
+
       <button class="icon-action menu-button" type="button" title="菜单" @click="toggleMenu">
         <X v-if="menuOpen" :size="20" />
         <Menu v-else :size="20" />
@@ -36,18 +33,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { Activity, Github, GitMerge, HeartPulse, Home, Link, Menu, Network, Rocket, X } from 'lucide-vue-next'
+import { ref, onMounted } from 'vue'
+import { Activity, Github, GitMerge, HeartPulse, Home, Link, Menu, Zap, Rocket, X, Sun, Moon, Monitor } from 'lucide-vue-next'
 
 const menuOpen = ref(false)
 
 const navItems = [
-  { to: '/', label: '总览', icon: Home },
   { to: '/converter', label: '订阅转换', icon: Rocket },
   { to: '/merge', label: '订阅合并', icon: GitMerge },
   { to: '/health', label: '节点检测', icon: HeartPulse },
-  { to: '/shortlink', label: '短链接', icon: Link },
-  { to: '/about', label: '部署 API', icon: Activity }
+  { to: '/shortlink', label: '短链接', icon: Link }
 ]
 
 const toggleMenu = () => {
@@ -57,6 +52,23 @@ const toggleMenu = () => {
 const closeMenu = () => {
   menuOpen.value = false
 }
+
+const theme = ref('auto')
+
+const cycleTheme = () => {
+  if (theme.value === 'auto') theme.value = 'light'
+  else if (theme.value === 'light') theme.value = 'dark'
+  else theme.value = 'auto'
+  
+  localStorage.setItem('app-theme', theme.value)
+  document.documentElement.setAttribute('data-theme', theme.value)
+}
+
+onMounted(() => {
+  const saved = localStorage.getItem('app-theme') || 'auto'
+  theme.value = saved
+  document.documentElement.setAttribute('data-theme', saved)
+})
 </script>
 
 <style scoped>
@@ -72,9 +84,9 @@ const closeMenu = () => {
   width: min(1240px, calc(100% - 28px));
   min-height: 66px;
   padding: 10px 12px;
-  border: 1px solid rgba(135, 160, 185, 0.2);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(5, 8, 13, 0.88);
+  background: var(--topbar-bg);
   box-shadow: var(--shadow);
   backdrop-filter: blur(20px);
   transform: translateX(-50%);
@@ -99,11 +111,10 @@ const closeMenu = () => {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border: 1px solid rgba(49, 214, 255, 0.42);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
-  color: var(--accent);
-  background: rgba(49, 214, 255, 0.09);
-  box-shadow: inset 0 0 24px rgba(49, 214, 255, 0.08);
+  color: var(--text);
+  background: var(--surface-2);
 }
 
 .brand-copy {
@@ -147,9 +158,9 @@ const closeMenu = () => {
 
 .nav a:hover,
 .nav a.router-link-active {
-  border-color: rgba(49, 214, 255, 0.26);
+  border-color: var(--line-strong);
   color: var(--text);
-  background: rgba(49, 214, 255, 0.08);
+  background: var(--surface-2);
 }
 
 .nav a.router-link-active {
@@ -168,7 +179,7 @@ const closeMenu = () => {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay);
   cursor: pointer;
 }
 
@@ -202,7 +213,7 @@ const closeMenu = () => {
     padding: 10px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: rgba(5, 8, 13, 0.96);
+    background: var(--topbar-bg);
     box-shadow: var(--shadow);
   }
 

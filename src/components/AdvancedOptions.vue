@@ -65,7 +65,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-const isOpen = ref(false)
+const isOpen = ref(true)
 
 const options = reactive({
   emoji: props.modelValue.emoji ?? true,

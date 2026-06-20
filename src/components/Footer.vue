@@ -1,9 +1,9 @@
 <template>
-  <footer class="footer">
-    <span>LaoWang Sub Converter</span>
-    <span class="dot"></span>
-    <span>Production Docker image on GHCR</span>
-  </footer>
+<!--  <footer class="footer">-->
+<!--    <span>订阅转换</span>-->
+<!--    <span class="dot"></span>-->
+<!--    <span>Production Docker image on GHCR</span>-->
+<!--  </footer>-->
 </template>
 
 <style scoped>

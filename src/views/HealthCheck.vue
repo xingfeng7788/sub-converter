@@ -1,17 +1,6 @@
 <template>
   <main class="page">
     <section class="page-shell stack">
-      <header class="hero-surface health-hero">
-        <div>
-          <p class="section-label">NODE HEALTH RADAR</p>
-          <h1 class="title-xl">先检测可用性，再导出在线节点</h1>
-          <p class="subtitle">
-            从当前服务器侧检测节点 TCP 连通性和延迟，过滤失效节点，并导出目标客户端可用配置。
-          </p>
-        </div>
-        <HeartPulse :size="34" />
-      </header>
-
       <section class="panel control-panel">
         <div class="mode-tabs">
           <button type="button" :class="{ active: sourceMode === 'url' }" @click="sourceMode = 'url'">订阅地址</button>
@@ -234,7 +223,7 @@ const latencyClass = (latency) => {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay);
   cursor: pointer;
   font-weight: 900;
 }
@@ -245,7 +234,7 @@ const latencyClass = (latency) => {
 .filter-bar button:hover {
   border-color: var(--line-strong);
   color: var(--accent);
-  background: rgba(49, 214, 255, 0.08);
+  background: var(--overlay-hover);
 }
 
 .settings-grid {
@@ -264,7 +253,7 @@ const latencyClass = (latency) => {
   padding: 15px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--overlay);
 }
 
 .summary-card span {
@@ -302,7 +291,7 @@ const latencyClass = (latency) => {
   padding: 13px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--overlay);
 }
 
 .status-dot {
@@ -310,12 +299,12 @@ const latencyClass = (latency) => {
   height: 10px;
   border-radius: 50%;
   background: var(--danger);
-  box-shadow: 0 0 14px rgba(255, 107, 122, 0.6);
+  box-shadow: 0 0 14px var(--danger);
 }
 
 .node-row.online .status-dot {
-  background: var(--accent-2);
-  box-shadow: 0 0 14px rgba(120, 242, 176, 0.7);
+  background: var(--success);
+  box-shadow: 0 0 14px var(--success);
 }
 
 .node-main {

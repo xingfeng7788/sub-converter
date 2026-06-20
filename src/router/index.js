@@ -9,8 +9,7 @@ import ShortLink from '../views/ShortLink.vue'
 const routes = [
     {
         path: '/',
-        name: 'Home',
-        component: Home
+        redirect: '/converter'
     },
     {
         path: '/converter',

@@ -1,17 +1,6 @@
 <template>
   <main class="page">
     <section class="page-shell stack">
-      <section class="converter-hero hero-surface">
-        <div>
-          <p class="section-label">CONVERSION PIPELINE</p>
-          <h1 class="title-xl">生成客户端可直接导入的订阅配置</h1>
-          <p class="subtitle">
-            输入订阅地址，选择目标客户端，系统会按协议兼容性输出 YAML、CONF、JSON 或分享链接。
-          </p>
-        </div>
-        <div class="status-pill">API 在线</div>
-      </section>
-
       <section class="pipeline">
         <article v-for="step in steps" :key="step.id" class="step-card" :class="{ active: step.active }">
           <span>{{ step.id }}</span>
@@ -24,7 +13,7 @@
         <div class="source-head">
           <div>
             <p class="section-label">SOURCE</p>
-            <h2>订阅来源</h2>
+<!--            <h2>订阅来源</h2>-->
           </div>
           <span class="mono">当前服务 API</span>
         </div>
@@ -35,7 +24,8 @@
             class="textarea mono"
             v-model="subscriptionUrl"
             placeholder="https://example.com/subscription?token=..."
-            rows="5"
+            rows="2"
+            style="min-height: 56px"
           ></textarea>
         </label>
 
@@ -185,39 +175,58 @@ const resetForm = () => {
 }
 
 .pipeline {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .step-card {
-  display: grid;
-  gap: 6px;
-  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(12, 17, 24, 0.72);
+  border-radius: 999px;
+  background: var(--surface-2);
+  white-space: nowrap;
 }
 
 .step-card.active {
-  border-color: var(--line-strong);
-  background: rgba(49, 214, 255, 0.08);
+  border-color: var(--text-soft);
+  background: var(--text);
 }
 
 .step-card span {
-  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  color: var(--text);
   font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 900;
 }
 
+.step-card.active span {
+  background: var(--bg);
+}
+
 .step-card strong {
-  color: var(--text);
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.step-card.active strong {
+  color: var(--bg);
 }
 
 .step-card small {
-  color: var(--text-muted);
-  font-size: 0.82rem;
+  display: none;
 }
 
 .source-panel,

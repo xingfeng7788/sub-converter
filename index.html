@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="LaoWang Sub Converter 是可私有化部署的订阅转换控制台，支持多协议解析、客户端格式转换、订阅合并、节点健康检测、短链接和 Docker 部署。"
+      content="订阅转换控制台，支持多协议解析、客户端格式转换、订阅合并、节点健康检测、短链接和 Docker 部署。"
     />
     <meta
       name="keywords"
       content="订阅转换,Clash,Mihomo,Surge,Shadowrocket,V2Ray,sing-box,Hiddify,NAS,Docker"
     />
-    <meta name="author" content="LaoWang" />
+    <meta name="author" content="Sub Converter" />
     <meta name="theme-color" content="#05070b" />
 
-    <meta property="og:title" content="LaoWang Sub Converter" />
+    <meta property="og:title" content="订阅转换" />
     <meta
       property="og:description"
       content="支持多协议、多客户端、订阅合并、节点检测、二维码导入和短链接的订阅转换工具。"
@@ -24,7 +24,15 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <title>LaoWang Sub Converter</title>
+    <title>订阅转换</title>
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('app-theme') || 'auto';
+          document.documentElement.setAttribute('data-theme', saved);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

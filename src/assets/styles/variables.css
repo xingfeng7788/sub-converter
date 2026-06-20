@@ -1,23 +1,78 @@
 :root {
-  --bg: #05070b;
-  --bg-2: #080c12;
-  --surface: rgba(12, 17, 24, 0.86);
-  --surface-solid: #0c1118;
-  --surface-2: rgba(16, 24, 34, 0.82);
-  --line: rgba(135, 160, 185, 0.18);
-  --line-strong: rgba(49, 214, 255, 0.42);
-  --text: #f5f9ff;
-  --text-soft: #b8c6d8;
-  --text-muted: #6f8198;
-  --accent: #31d6ff;
-  --accent-2: #78f2b0;
-  --warning: #ffd166;
-  --danger: #ff6b7a;
-  --blueprint: rgba(49, 214, 255, 0.06);
-  --shadow: 0 24px 90px rgba(0, 0, 0, 0.46);
-  --shadow-soft: 0 16px 48px rgba(0, 0, 0, 0.3);
-  --radius: 8px;
+  /* Dark Theme */
+  --bg: #09090b;
+  --bg-2: #121214;
+  --surface: #18181b;
+  --surface-solid: #18181b;
+  --surface-2: #27272a;
+  --line: #27272a;
+  --line-strong: #3f3f46;
+  --text: #fafafa;
+  --text-soft: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #fafafa;
+  --accent-2: #e4e4e7;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --success: #10b981;
+  --blueprint: transparent;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
+  
+  --overlay: rgba(255, 255, 255, 0.05);
+  --overlay-hover: rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.03);
+  --topbar-bg: rgba(9, 9, 11, 0.85);
+  --panel-bg: rgba(18, 23, 28, 0.6);
+
+  --radius: 6px;
   --font: "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --max: 1220px;
+}
+
+[data-theme="light"] {
+  --bg: #fafafa;
+  --bg-2: #f4f4f5;
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --surface-2: #f4f4f5;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --text: #09090b;
+  --text-soft: #52525b;
+  --text-muted: #71717a;
+  --accent: #09090b;
+  --accent-2: #27272a;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  --overlay: rgba(0, 0, 0, 0.03);
+  --overlay-hover: rgba(0, 0, 0, 0.06);
+  --input-bg: #ffffff;
+  --topbar-bg: rgba(255, 255, 255, 0.85);
+  --panel-bg: #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+    --bg: #fafafa;
+    --bg-2: #f4f4f5;
+    --surface: #ffffff;
+    --surface-solid: #ffffff;
+    --surface-2: #f4f4f5;
+    --line: #e4e4e7;
+    --line-strong: #d4d4d8;
+    --text: #09090b;
+    --text-soft: #52525b;
+    --text-muted: #71717a;
+    --accent: #09090b;
+    --accent-2: #27272a;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    --overlay: rgba(0, 0, 0, 0.03);
+    --overlay-hover: rgba(0, 0, 0, 0.06);
+    --input-bg: #ffffff;
+    --topbar-bg: rgba(255, 255, 255, 0.85);
+    --panel-bg: #ffffff;
+  }
 }

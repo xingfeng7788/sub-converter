@@ -8,20 +8,17 @@
       <span>{{ clients.length }} 个目标</span>
     </div>
 
-    <div class="client-grid">
+    <div class="chip-group">
       <button
         v-for="client in clients"
         :key="client.id"
         type="button"
-        class="client-card"
+        class="chip"
         :class="{ active: modelValue === client.id }"
         @click="$emit('update:modelValue', client.id)"
       >
-        <component :is="client.icon" :size="19" />
-        <span>
-          <strong>{{ client.name }}</strong>
-          <small>{{ client.platform }}</small>
-        </span>
+        <component :is="client.icon" :size="14" />
+        <span>{{ client.name }}</span>
       </button>
     </div>
   </section>
@@ -86,65 +83,45 @@ function iconFor(id) {
   font-weight: 900;
 }
 
-.client-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(186px, 1fr));
-  gap: 10px;
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.client-card {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
+.chip {
+  display: inline-flex;
   align-items: center;
-  gap: 11px;
-  min-height: 76px;
-  padding: 13px;
+  gap: 6px;
+  padding: 6px 12px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
-  text-align: left;
-  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  transition: all 0.15s ease;
 }
 
-.client-card:hover {
+.chip:hover {
   border-color: var(--line-strong);
-  transform: translateY(-1px);
-}
-
-.client-card.active {
-  border-color: rgba(49, 214, 255, 0.72);
   color: var(--text);
-  background: rgba(49, 214, 255, 0.1);
+  background: var(--surface-2);
 }
 
-.client-card svg {
-  color: var(--accent);
+.chip.active {
+  border-color: var(--text-soft);
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
 }
 
-.client-card span {
-  min-width: 0;
+.chip.active svg {
+  color: var(--bg);
 }
 
-.client-card strong,
-.client-card small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.client-card strong {
-  color: var(--text);
-  font-size: 0.95rem;
-  line-height: 1.22;
-}
-
-.client-card small {
-  margin-top: 4px;
+.chip svg {
   color: var(--text-muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
 }
 </style>
