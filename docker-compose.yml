@@ -1,8 +1,8 @@
 services:
-  laowang-sub-converter:
+  sub-converter:
 #    build: .
     image: qq510023514/sub-converter:latest
-    container_name: laowang-sub-converter
+    container_name: sub-converter
     environment:
       NODE_ENV: production
       PORT: 3000
