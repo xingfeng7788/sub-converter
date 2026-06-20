@@ -56,8 +56,8 @@ curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/sc
 
 ```text
 镜像：qq510023514/sub-converter:latest
-安装目录：/opt/laowang-sub-converter
-数据目录：/opt/laowang-sub-converter/data
+安装目录：/opt/sub-converter
+数据目录：/opt/sub-converter/data
 访问端口：3000
 访问地址：http://服务器IP:3000
 ```
@@ -110,13 +110,13 @@ curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/sc
 ## 手动 Docker 部署
 
 ```bash
-sudo install -d -m 750 -o 10001 -g 10001 /opt/laowang-sub-converter/data
+sudo install -d -m 750 -o 10001 -g 10001 /opt/sub-converter/data
 
 docker run -d \
-  --name laowang-sub-converter \
+  --name sub-converter \
   -p 3000:3000 \
   -e DATA_DIR=/app/data \
-  -v /opt/laowang-sub-converter/data:/app/data \
+  -v /opt/sub-converter/data:/app/data \
   --restart unless-stopped \
   qq510023514/sub-converter:latest
 ```
@@ -125,9 +125,9 @@ Docker Compose：
 
 ```yaml
 services:
-  laowang-sub-converter:
+  sub-converter:
     image: qq510023514/sub-converter:latest
-    container_name: laowang-sub-converter
+    container_name: sub-converter
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -135,7 +135,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - laowang-data:/app/data
+      - sub-converter-data:/app/data
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -144,7 +144,7 @@ services:
       - no-new-privileges:true
 
 volumes:
-  laowang-data:
+  sub-converter-data:
 ```
 
 ## 环境变量

@@ -1,7 +1,7 @@
 import dns from 'node:dns/promises'
 import net from 'node:net'
 
-const USER_AGENT = 'LaoWang-Sub-Converter/1.0'
+const USER_AGENT = 'Sub-Converter/1.0'
 const DEFAULT_TIMEOUT_MS = 15000
 const DEFAULT_MAX_BYTES = 5 * 1024 * 1024
 const MAX_REDIRECTS = 5

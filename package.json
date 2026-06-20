@@ -1,5 +1,5 @@
 {
-  "name": "laowang-sub-converter",
+  "name": "sub-converter",
   "version": "1.0.0",
   "description": "LaoWang subscription converter for multi-protocol proxy client formats",
   "type": "module",
@@ -16,8 +16,8 @@
     "test:frontend": "node tests/frontend-utils.test.mjs",
     "test:deploy": "node tests/deployment.test.mjs",
     "audit": "npm audit --audit-level=moderate",
-    "docker:build": "docker build -t laowang-sub-converter:latest .",
-    "docker:run": "docker run --rm -p 3000:3000 laowang-sub-converter:latest",
+    "docker:build": "docker build -t sub-converter:latest .",
+    "docker:run": "docker run --rm -p 3000:3000 sub-converter:latest",
     "docker:compose": "docker-compose up -d"
   },
   "keywords": [
@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tony-wang1990/laowang-sub-converter"
+    "url": "https://github.com/xingfeng7788/sub-converter"
   },
   "dependencies": {
     "cors": "^2.8.6",

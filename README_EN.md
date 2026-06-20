@@ -14,8 +14,8 @@ Defaults:
 
 ```text
 Image: qq510023514/sub-converter:latest
-Install dir: /opt/laowang-sub-converter
-Data dir: /opt/laowang-sub-converter/data
+Install dir: /opt/sub-converter
+Data dir: /opt/sub-converter/data
 Port: 3000
 URL: http://SERVER_IP:3000
 ```

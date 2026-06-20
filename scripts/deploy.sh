@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-APP_NAME="${APP_NAME:-laowang-sub-converter}"
-IMAGE="${IMAGE:-ghcr.io/tony-wang1990/laowang-sub-converter:latest}"
+APP_NAME="${APP_NAME:-sub-converter}"
+IMAGE="${IMAGE:-qq510023514/sub-converter:latest}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/${APP_NAME}}"
 PORT="${PORT:-3000}"
 DATA_DIR="${DATA_DIR:-${INSTALL_DIR}/data}"
@@ -211,9 +211,9 @@ Usage:
 
 Environment variables:
   PORT=3000
-  INSTALL_DIR=/opt/laowang-sub-converter
-  DATA_DIR=/opt/laowang-sub-converter/data
-  IMAGE=ghcr.io/tony-wang1990/laowang-sub-converter:latest
+  INSTALL_DIR=/opt/sub-converter
+  DATA_DIR=/opt/sub-converter/data
+  IMAGE=qq510023514/sub-converter:latest
   ALLOW_PRIVATE_SUBSCRIPTION_URLS=0
   PUBLIC_BASE_URL=https://sub.example.com
   APP_UID=10001
