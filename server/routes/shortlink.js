@@ -52,41 +52,6 @@ router.post('/', (req, res) => {
     }
 })
 
-router.get('/list', (req, res) => {
-    try {
-        const links = Object.entries(readData().links)
-            .map(([code, link]) => publicLink(req, code, link))
-            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        return res.json({ links })
-    } catch (error) {
-        return handleStorageError(res, 'List short links', error)
-    }
-})
-
-router.delete('/:code', (req, res) => {
-    try {
-        const data = readData()
-        if (!data.links[req.params.code]) {
-            return res.status(404).json({ error: 'Short link not found' })
-        }
-
-        delete data.links[req.params.code]
-        writeData(data)
-        return res.json({ success: true })
-    } catch (error) {
-        return handleStorageError(res, 'Delete short link', error)
-    }
-})
-
-router.get('/:code/stats', (req, res) => {
-    try {
-        const link = readData().links[req.params.code]
-        if (!link) return res.status(404).json({ error: 'Short link not found' })
-        return res.json(publicLink(req, req.params.code, link))
-    } catch (error) {
-        return handleStorageError(res, 'Get short link stats', error)
-    }
-})
 
 router.get('/:code', (req, res) => {
     try {

@@ -8,7 +8,7 @@
             <input class="input mono" v-model="newUrl" placeholder="https://example.com/api/convert?target=..." />
           </label>
           <label class="field">
-            <span>自定义短码</span>
+            <span>自定义短码（选填）</span>
             <input class="input mono" v-model="customCode" placeholder="my-profile" />
           </label>
         </div>
@@ -19,72 +19,54 @@
             <Plus v-else :size="18" />
             <span>{{ loading ? '创建中' : '创建短链接' }}</span>
           </button>
-          <button class="btn btn-secondary" type="button" @click="loadShortLinks">
-            <RefreshCw :size="18" />
-            <span>刷新列表</span>
-          </button>
         </div>
 
         <p v-if="error" class="alert alert-error">{{ error }}</p>
         <p v-if="success" class="alert alert-success">{{ success }}</p>
       </section>
 
-      <section class="panel result-panel">
-        <div class="list-header">
-          <div>
-            <p class="section-label">LINKS</p>
-            <h2>{{ shortLinks.length }} 个短链接</h2>
+      <transition name="fade">
+        <section class="panel result-panel" v-if="generatedLink">
+          <div class="list-header">
+            <div>
+              <p class="section-label">SUCCESS</p>
+              <h2>短链接已生成</h2>
+            </div>
+            <button class="btn btn-primary compact" type="button" @click="copyLink(generatedLink)">
+              <Copy :size="16" />
+              <span>复制链接</span>
+            </button>
           </div>
-          <span class="mono">/s/:code</span>
-        </div>
-
-        <div v-if="shortLinks.length" class="link-list">
-          <article v-for="link in shortLinks" :key="link.id" class="link-row">
-            <div class="link-main">
-              <strong>{{ link.shortUrl }}</strong>
-              <span :title="link.originalUrl">{{ link.originalUrl }}</span>
-            </div>
-            <div class="link-meta">
-              <span>{{ link.clicks }} 次访问</span>
-              <span>{{ formatDate(link.createdAt) }}</span>
-            </div>
-            <div class="row-actions">
-              <button title="复制" type="button" @click="copyLink(link.shortUrl)">
-                <Copy :size="17" />
-              </button>
-              <button title="删除" type="button" @click="deleteLink(link.id)">
-                <Trash2 :size="17" />
-              </button>
-            </div>
-          </article>
-        </div>
-
-        <div v-else class="empty-state">
-          <LinkIcon :size="30" />
-          <p>还没有创建短链接。</p>
-        </div>
-      </section>
+          <div class="link-row">
+            <input class="input mono" type="text" :value="generatedLink" readonly />
+          </div>
+          <p class="alert alert-warning" style="margin-top: 10px;">
+            请注意妥善保存此链接，系统不会提供任何公开的短链接列表。
+          </p>
+        </section>
+      </transition>
     </section>
   </main>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { Copy, Link as LinkIcon, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { Copy, Loader2, Plus } from 'lucide-vue-next'
 import { apiErrorMessage } from '../utils/apiError.js'
 import { copyText } from '../utils/clipboard.js'
 
 const newUrl = ref('')
 const customCode = ref('')
 const loading = ref(false)
-const shortLinks = ref([])
 const error = ref('')
 const success = ref('')
+const generatedLink = ref('')
 
 const createShortLink = async () => {
   loading.value = true
   error.value = ''
   success.value = ''
+  generatedLink.value = ''
   try {
     const response = await fetch('/api/shortlink', {
       method: 'POST',
@@ -93,26 +75,15 @@ const createShortLink = async () => {
     })
     const data = await response.json()
     if (!response.ok || data.error) throw new Error(apiErrorMessage(data, `创建失败（HTTP ${response.status}）`))
-    shortLinks.value = [normalizeLink(data), ...shortLinks.value.filter(link => link.id !== data.id)]
+    
+    generatedLink.value = data.shortUrl
     newUrl.value = ''
     customCode.value = ''
-    success.value = '短链接已创建。'
+    success.value = '短链接创建成功。'
   } catch (err) {
     error.value = apiErrorMessage(err, '创建失败')
   } finally {
     loading.value = false
-  }
-}
-
-const loadShortLinks = async () => {
-  error.value = ''
-  try {
-    const response = await fetch('/api/shortlink/list')
-    const data = await response.json()
-    if (!response.ok || data.error) throw new Error(apiErrorMessage(data, `加载失败（HTTP ${response.status}）`))
-    shortLinks.value = (data.links || []).map(normalizeLink)
-  } catch (err) {
-    error.value = apiErrorMessage(err, '加载失败')
   }
 }
 
@@ -125,32 +96,6 @@ const copyLink = async (url) => {
     error.value = '复制失败，请手动复制链接。'
   }
 }
-
-const deleteLink = async (id) => {
-  if (!confirm('确定删除这个短链接吗？')) return
-  error.value = ''
-  try {
-    const response = await fetch(`/api/shortlink/${id}`, { method: 'DELETE' })
-    const data = await response.json()
-    if (!response.ok || data.error) throw new Error(apiErrorMessage(data, `删除失败（HTTP ${response.status}）`))
-    shortLinks.value = shortLinks.value.filter(link => link.id !== id)
-    success.value = '短链接已删除。'
-  } catch (err) {
-    error.value = apiErrorMessage(err, '删除失败')
-  }
-}
-
-const normalizeLink = item => ({
-  id: item.id,
-  shortUrl: item.shortUrl,
-  originalUrl: item.originalUrl,
-  clicks: item.clicks || 0,
-  createdAt: item.createdAt || item.created || new Date().toISOString()
-})
-
-const formatDate = date => date ? new Date(date).toLocaleDateString('zh-CN') : '-'
-
-onMounted(loadShortLinks)
 </script>
 
 <style scoped>
@@ -176,6 +121,10 @@ onMounted(loadShortLinks)
   display: grid;
   grid-template-columns: minmax(0, 1fr) 250px;
   gap: 12px;
+}
+
+.auth-field {
+  margin-top: -3px;
 }
 
 .actions,

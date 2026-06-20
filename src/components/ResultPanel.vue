@@ -284,6 +284,7 @@ const generateShortLink = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: props.result })
     })
+    
     const data = await response.json()
     if (response.ok && !data.error) {
       shortLink.value = data.shortUrl

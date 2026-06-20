@@ -37,7 +37,7 @@ curl -fsSL "https://raw.githubusercontent.com/xingfeng7788/sub-converter/main/sc
 - Convert subscriptions to Clash, Mihomo, Surge, Loon, Quantumult X, Shadowrocket, V2RayN, sing-box and more.
 - Merge multiple subscriptions with dedupe, sorting, filtering, renaming, and rule presets.
 - Check node TCP reachability from the server and export online nodes.
-- Create persistent short links with click counts.
+- Create short links for subscriptions. Uses a pure create-only interface with no public lists to prevent data scraping.
 - Generate QR codes for subscription URLs and supported share links.
 - Filter every target through a client-specific protocol compatibility matrix.
 - Persist short links with a fixed non-root UID/GID and proxy-aware HTTPS URLs.
@@ -76,7 +76,6 @@ POST /api/merge
 POST /api/merge/preview
 POST /api/health/check
 POST /api/shortlink
-GET /api/shortlink/list
 GET /api/targets
 GET /healthz
 ```
