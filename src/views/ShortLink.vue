@@ -72,6 +72,7 @@
 import { onMounted, ref } from 'vue'
 import { Copy, Link as LinkIcon, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-vue-next'
 import { apiErrorMessage } from '../utils/apiError.js'
+import { copyText } from '../utils/clipboard.js'
 
 const newUrl = ref('')
 const customCode = ref('')
@@ -116,8 +117,13 @@ const loadShortLinks = async () => {
 }
 
 const copyLink = async (url) => {
-  await navigator.clipboard.writeText(url)
-  success.value = '已复制到剪贴板。'
+  error.value = ''
+  try {
+    await copyText(url)
+    success.value = '已复制到剪贴板。'
+  } catch {
+    error.value = '复制失败，请手动复制链接。'
+  }
 }
 
 const deleteLink = async (id) => {

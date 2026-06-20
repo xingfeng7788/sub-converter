@@ -18,6 +18,8 @@ assert.match(deployScript, /chown -R "\$\{APP_UID\}:\$\{APP_GID\}" "\$DATA_DIR"/
 assert.match(deployScript, /docker container inspect/)
 assert.match(deployScript, /read_only: true/)
 assert.match(deployScript, /no-new-privileges:true/)
+assert.match(deployScript, /Reusing existing deployment configuration/)
+assert.match(deployScript, /\$compose port "\$APP_NAME" 3000/)
 
 assert.match(compose, /laowang-data:\/app\/data/)
 assert.match(compose, /^volumes:\s*$/m)

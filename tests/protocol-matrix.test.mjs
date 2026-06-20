@@ -115,6 +115,7 @@ assert.match(surge, /SOCKS5 = socks5, example\.com, 1080, user, pass/)
 assert.doesNotMatch(surge, /HTTP =[^\n]*username=/)
 assert.doesNotMatch(surge, /SOCKS5 =[^\n]*username=/)
 assert.match(surge, /salamander-password=obfspass/)
+assert.doesNotMatch(surge, / = tuic,/, 'Surge must not emit TUIC v5 credentials as a v4 token')
 
 const surfboard = convertToTarget(nodes, 'surfboard')
 assert.doesNotMatch(surfboard, / = tuic,/)
@@ -122,6 +123,25 @@ assert.doesNotMatch(surfboard, / = tuic,/)
 const qx = convertToTarget(nodes, 'quantumultx')
 assert.match(qx, new RegExp(`reality-base64-pubkey=${publicKey}`))
 assert.match(qx, /anytls=example\.com:443/)
+assert.match(qx, /obfs=http/)
+assert.match(qx, /obfs-host=example\.com/)
+
+const loon = convertToTarget(nodes, 'loon')
+assert.match(loon, /obfs-name=http/)
+assert.match(loon, /obfs-host=example\.com/)
+assert.doesNotMatch(loon, /reality=true/)
+assert.match(loon, /public-key=/)
+
+const surgeTuicV4 = convertToTarget([{
+    type: 'tuic',
+    name: 'TUIC-v4',
+    server: 'example.com',
+    port: 443,
+    token: 'v4-token',
+    alpn: ['h3'],
+    sni: 'example.com'
+}], 'surge')
+assert.match(surgeTuicV4, /token=v4-token/)
 
 const singBox = JSON.parse(convertToTarget(nodes, 'sing-box'))
 assert.ok(singBox.outbounds.some(outbound => outbound.type === 'vless' && outbound.tls?.reality?.enabled))

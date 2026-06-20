@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "server": "node server/index.js",
     "start": "npm run build && npm run server",
-    "test": "npm run test:protocol && npm run test:api && npm run test:security && npm run test:frontend && npm run test:deploy",
+    "test": "npm run build && npm run test:protocol && npm run test:api && npm run test:security && npm run test:frontend && npm run test:deploy",
     "test:protocol": "node tests/protocol-matrix.test.mjs",
     "test:api": "node tests/api.test.mjs",
     "test:security": "node tests/security.test.mjs",

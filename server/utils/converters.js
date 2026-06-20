@@ -285,7 +285,8 @@ function toSurgeLine(node, options, target) {
                 `udp-relay=${options.udp}`
             ])
         case 'tuic':
-            return appendParts(`${name} = tuic, ${server}, ${node.port}, token=${confValue(node.token || node.password)}`, [
+            if (!node.token) return ''
+            return appendParts(`${name} = tuic, ${server}, ${node.port}, token=${confValue(node.token)}`, [
                 node.alpn?.length && `alpn=${node.alpn[0]}`,
                 node.sni && `sni=${confValue(node.sni)}`,
                 (node.insecure || options.skipCert) && 'skip-cert-verify=true',
@@ -318,7 +319,12 @@ function convertToQuantumultX(nodes, options) {
         const server = formatHost(node.server)
         switch (node.type) {
             case 'ss':
-                return `shadowsocks=${server}:${node.port}, method=${node.method}, password=${confValue(node.password)}, udp-relay=${options.udp}, tag=${name}`
+                return appendParts(`shadowsocks=${server}:${node.port}, method=${node.method}, password=${confValue(node.password)}`, [
+                    shadowsocksObfs(node.plugin, node.pluginOpts, 'mode'),
+                    shadowsocksObfs(node.plugin, node.pluginOpts, 'host'),
+                    `udp-relay=${options.udp}`,
+                    `tag=${name}`
+                ])
             case 'vmess':
                 return appendParts(`vmess=${server}:${node.port}, method=${node.cipher || 'auto'}, password=${confValue(node.uuid)}, tag=${name}`, [
                     node.tls && 'tls=1',
@@ -378,6 +384,8 @@ function convertToLoon(nodes, options) {
         switch (node.type) {
             case 'ss':
                 return appendParts(`${name} = Shadowsocks,${server},${node.port},${node.method},${quotedValue(node.password)}`, [
+                    loonShadowsocksObfs(node.plugin, node.pluginOpts, 'mode'),
+                    loonShadowsocksObfs(node.plugin, node.pluginOpts, 'host'),
                     `udp=${options.udp}`
                 ])
             case 'ssr':
@@ -405,7 +413,6 @@ function convertToLoon(nodes, options) {
                     node.tls && 'over-tls=true',
                     node.sni && `tls-name=${node.sni}`,
                     node.flow && `flow=${node.flow}`,
-                    node.reality && 'reality=true',
                     node.reality?.publicKey && `public-key=${node.reality.publicKey}`,
                     node.reality?.shortId && `short-id=${node.reality.shortId}`,
                     node.reality?.fingerprint && `client-fingerprint=${node.reality.fingerprint}`,
@@ -729,6 +736,7 @@ function prepareNodes(nodes, target) {
     return (Array.isArray(nodes) ? nodes : [])
         .filter(node => allowedTypes.has(node.type))
         .filter(node => !(SING_BOX_TARGETS.has(target) && node.type === 'tuic' && !node.password))
+        .filter(node => !(target === 'surge' && node.type === 'tuic' && !node.token))
         .map((node, index) => {
             const baseName = String(node.name || `${String(node.type || 'proxy').toUpperCase()} Node ${index + 1}`)
                 .replace(/[\u0000-\u001f\u007f]/g, ' ')
@@ -814,6 +822,14 @@ function shadowsocksObfs(plugin, options, field) {
     if (!['obfs', 'obfs-local'].includes(plugin)) return ''
     const values = normalizePluginOptions(options) || {}
     if (field === 'mode' && values.mode) return `obfs=${values.mode}`
+    if (field === 'host' && values.host) return `obfs-host=${confValue(values.host)}`
+    return ''
+}
+
+function loonShadowsocksObfs(plugin, options, field) {
+    if (!['obfs', 'obfs-local'].includes(plugin)) return ''
+    const values = normalizePluginOptions(options) || {}
+    if (field === 'mode' && values.mode) return `obfs-name=${values.mode}`
     if (field === 'host' && values.host) return `obfs-host=${confValue(values.host)}`
     return ''
 }

@@ -108,7 +108,8 @@ remove_conflicting_container() {
 }
 
 wait_for_health() {
-  local url="http://127.0.0.1:${PORT}/healthz"
+  local health_port="${1:-$PORT}"
+  local url="http://127.0.0.1:${health_port}/healthz"
   for _ in $(seq 1 30); do
     if command -v curl >/dev/null 2>&1 && curl -fsS "$url" >/dev/null 2>&1; then
       log "Health check passed: ${url}"
@@ -126,9 +127,14 @@ wait_for_health() {
 install_or_update() {
   install_docker
   local compose
+  local health_port="$PORT"
   compose="$(compose_cmd)"
 
-  write_compose
+  if [ "$ACTION" = "install" ] || [ ! -f "${INSTALL_DIR}/docker-compose.yml" ]; then
+    write_compose
+  else
+    log "Reusing existing deployment configuration: ${INSTALL_DIR}/docker-compose.yml"
+  fi
   log "Using image: ${IMAGE}"
   log "Install dir: ${INSTALL_DIR}"
   log "Data dir: ${DATA_DIR}"
@@ -137,9 +143,14 @@ install_or_update() {
   $compose pull
   remove_conflicting_container
   $compose up -d
-  wait_for_health
+  local published
+  published="$($compose port "$APP_NAME" 3000 2>/dev/null | tail -n 1 || true)"
+  if [ -n "$published" ]; then
+    health_port="${published##*:}"
+  fi
+  wait_for_health "$health_port"
 
-  log "Done. Open: http://YOUR_SERVER_IP:${PORT}"
+  log "Done. Open: http://YOUR_SERVER_IP:${health_port}"
 }
 
 status_app() {

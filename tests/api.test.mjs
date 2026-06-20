@@ -143,8 +143,18 @@ async function main() {
         assert.match(clash.body, /Mock-SS/)
         assert.match(clash.body, /Mock-AnyTLS/)
 
+        const invalidConvertTarget = await request(appPort, 'GET', `/api/convert?target=unknown&url=${encodeURIComponent(sub1)}`)
+        assert.equal(invalidConvertTarget.status, 400)
+
+        const missingConvertUrl = await request(appPort, 'GET', '/api/convert?target=clashmeta')
+        assert.equal(missingConvertUrl.status, 400)
+
         const surgeVlessOnly = await request(appPort, 'GET', `/api/convert?target=surge&url=${encodeURIComponent(`http://127.0.0.1:${subPort}/vless-only`)}`)
         assert.equal(surgeVlessOnly.status, 422)
+
+        const presets = await request(appPort, 'GET', '/api/rules/presets')
+        assert.equal(presets.status, 200, presets.body)
+        assert.ok(JSON.parse(presets.body).some(preset => preset.id === 'standard'))
 
         const targets = await request(appPort, 'GET', '/api/targets')
         assert.equal(targets.status, 200)
@@ -202,6 +212,19 @@ async function main() {
         assert.match(healthJson.exportConfig, /Mock-SS/)
         assert.doesNotMatch(healthJson.exportConfig, /Mock-Offline/)
 
+        const ping = await request(appPort, 'GET', `/api/health/ping?server=127.0.0.1&port=${onlineA.port}&timeout=800`)
+        assert.equal(ping.status, 200, ping.body)
+        assert.equal(JSON.parse(ping.body).success, true)
+
+        const invalidPing = await request(appPort, 'GET', '/api/health/ping?server=example.com&port=70000')
+        assert.equal(invalidPing.status, 400)
+
+        const invalidHealthTarget = await request(appPort, 'POST', '/api/health/check', {
+            nodes: [{ server: 'example.com', port: 443 }],
+            exportTarget: 'unknown'
+        })
+        assert.equal(invalidHealthTarget.status, 400)
+
         const initialLinks = await request(appPort, 'GET', '/api/shortlink/list')
         assert.equal(initialLinks.status, 200, initialLinks.body)
         assert.deepEqual(JSON.parse(initialLinks.body).links, [])
@@ -216,6 +239,18 @@ async function main() {
         assert.equal(createdLink.status, 201, createdLink.body)
         const createdJson = JSON.parse(createdLink.body)
         assert.equal(createdJson.shortUrl, 'https://sub.example.com/s/test-profile')
+
+        const duplicateCode = await request(appPort, 'POST', '/api/shortlink', {
+            url: clashUrl(appPort, sub2),
+            code: 'test-profile'
+        })
+        assert.equal(duplicateCode.status, 409)
+
+        const invalidCode = await request(appPort, 'POST', '/api/shortlink', {
+            url: clashUrl(appPort, sub2),
+            code: 'x'
+        })
+        assert.equal(invalidCode.status, 400)
 
         const listedLinks = await request(appPort, 'GET', '/api/shortlink/list', null, {
             Host: 'sub.example.com',
@@ -234,6 +269,9 @@ async function main() {
         assert.equal(removed.status, 200, removed.body)
         assert.ok(fs.existsSync(path.join(dataDir, 'shortlinks.json')))
 
+        const missingStats = await request(appPort, 'GET', '/api/shortlink/test-profile/stats')
+        assert.equal(missingStats.status, 404)
+
         const invalidShortLink = await request(appPort, 'POST', '/api/shortlink', {
             url: 'javascript:alert(1)'
         })
@@ -242,6 +280,13 @@ async function main() {
         const missingApi = await request(appPort, 'GET', '/api/not-a-route')
         assert.equal(missingApi.status, 404)
         assert.match(missingApi.headers['content-type'], /application\/json/)
+
+        for (const route of ['/', '/converter', '/shortlink', '/about', '/health', '/merge']) {
+            const page = await request(appPort, 'GET', route, null, { Accept: 'text/html' })
+            assert.equal(page.status, 200, `${route}: ${page.body}`)
+            assert.match(page.headers['content-type'], /text\/html/)
+            assert.match(page.body, /<div id="app"><\/div>/)
+        }
 
         console.log('api tests passed')
     } finally {

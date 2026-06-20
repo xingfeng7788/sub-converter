@@ -77,7 +77,7 @@ main {
 .page {
   width: 100%;
   min-height: 100vh;
-  padding: 112px 20px 48px;
+  padding: 126px 20px 48px;
 }
 
 .page-shell {
@@ -466,7 +466,7 @@ main {
 
 @media (max-width: 720px) {
   .page {
-    padding: 92px 14px 36px;
+    padding: 104px 14px 36px;
   }
 
   .grid-2,

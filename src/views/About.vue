@@ -139,6 +139,7 @@ import {
   TerminalSquare
 } from 'lucide-vue-next'
 import { TARGET_DEFINITIONS } from '../../shared/targets.js'
+import { copyText } from '../utils/clipboard.js'
 
 const copied = ref('')
 
@@ -170,9 +171,11 @@ const apis = [
   { method: 'POST', path: '/api/health/check', body: '检测节点连通性并导出在线节点。' },
   { method: 'POST', path: '/api/shortlink', body: '创建持久化短链接。' },
   { method: 'GET', path: '/api/shortlink/list', body: '列出短链接和访问次数。' },
-  { method: 'GET', path: '/api/shortlink/:id/stats', body: '读取单个短链接统计。' },
-  { method: 'DELETE', path: '/api/shortlink/:id', body: '删除短链接。' },
+  { method: 'GET', path: '/api/shortlink/:code/stats', body: '读取单个短链接统计。' },
+  { method: 'DELETE', path: '/api/shortlink/:code', body: '删除短链接。' },
   { method: 'GET', path: '/api/targets', body: '返回支持的目标客户端列表。' },
+  { method: 'GET', path: '/api/rules/presets', body: '返回可用的 YAML 规则模板。' },
+  { method: 'GET', path: '/api/health/ping', body: '检测单个公网节点的 TCP 连通性。' },
   { method: 'GET', path: '/healthz', body: '服务健康检查。' }
 ]
 
@@ -186,11 +189,15 @@ const checklist = [
 ]
 
 const copyCommand = async (text, key) => {
-  await navigator.clipboard.writeText(text)
-  copied.value = key
-  window.setTimeout(() => {
-    if (copied.value === key) copied.value = ''
-  }, 1400)
+  try {
+    await copyText(text)
+    copied.value = key
+    window.setTimeout(() => {
+      if (copied.value === key) copied.value = ''
+    }, 1400)
+  } catch {
+    copied.value = ''
+  }
 }
 </script>
 
