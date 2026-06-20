@@ -1,6 +1,8 @@
-# LaoWang Sub Converter
+# Sub Converter
 
-Production-ready private subscription converter with a web console and backend APIs for conversion, merge, health check, short links, and client exports.
+> **🎉 Acknowledgement**: This project is deeply customized and UI-redesigned based on the excellent open-source project [tony-wang1990/laowang-sub-converter](https://github.com/tony-wang1990/laowang-sub-converter). Special thanks to the original author for their hard work and solid backend logic!
+
+Production-ready private subscription converter with a highly modernized web console and backend APIs for conversion, merge, health check, short links, and client exports.
 
 ## Quick Deploy
 

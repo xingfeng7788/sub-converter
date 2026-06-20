@@ -1,6 +1,9 @@
 # 订阅转换 (Sub Converter)
 
+> **🎉 鸣谢与声明**：本项目基于原作者的优秀开源项目 [tony-wang1990/laowang-sub-converter](https://github.com/tony-wang1990/laowang-sub-converter) 进行二次开发与前端界面的极致美化重构。特此对原作者的辛勤付出表示衷心感谢！
+
 一个高度现代化、可私有化部署的订阅转换和节点整理工具。前端提供极具质感的极简控制台 UI，后端提供转换、合并、健康检测、短链接和目标客户端导出 API。
+
 
 ## 界面展示
 
