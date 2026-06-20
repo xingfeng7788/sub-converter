@@ -25,6 +25,18 @@
       <input class="input mono" type="text" :value="result" readonly ref="urlInput" />
     </div>
 
+    <div v-if="shortLinkLoading || shortLink" class="shortlink-box">
+      <p class="section-label">短链接</p>
+      <div class="result-url">
+        <Loader2 v-if="shortLinkLoading" :size="18" class="spin loader-icon" />
+        <input class="input mono" :class="{ 'pl-36': shortLinkLoading }" type="text" :value="shortLink || '正在生成短链接...'" readonly ref="shortUrlInput" />
+        <button v-if="shortLink" class="icon-button compact-copy" type="button" @click="copyShortLink" :title="shortCopied ? '已复制' : '复制短链接'">
+          <Check v-if="shortCopied" :size="16" />
+          <Copy v-else :size="16" />
+        </button>
+      </div>
+    </div>
+
     <p v-if="error" class="alert alert-error">{{ error }}</p>
 
     <transition name="fade">
@@ -81,6 +93,7 @@ const props = defineProps({
 })
 
 const copied = ref(false)
+const shortCopied = ref(false)
 const downloading = ref(false)
 const showQR = ref(false)
 const qrLoading = ref(false)
@@ -90,7 +103,11 @@ const qrMessage = ref('')
 const qrItems = ref([])
 const activeQrIndex = ref(0)
 const urlInput = ref(null)
+const shortUrlInput = ref(null)
 const qrCanvas = ref(null)
+
+const shortLink = ref('')
+const shortLinkLoading = ref(false)
 
 const SHARE_LINK_TARGETS = new Set(['shadowrocket', 'v2rayn', 'v2rayng', 'v2rayu'])
 
@@ -106,28 +123,38 @@ const clientLabel = computed(() => getTargetDefinition(target.value)?.name || ta
 const activeQrItem = computed(() => qrItems.value[activeQrIndex.value])
 
 const copyLink = async () => {
-  await copyText(props.result)
+  await copyText(props.result, urlInput)
   copied.value = true
   setTimeout(() => {
     copied.value = false
   }, 1800)
 }
 
+const copyShortLink = async () => {
+  await copyText(shortLink.value, shortUrlInput)
+  shortCopied.value = true
+  setTimeout(() => {
+    shortCopied.value = false
+  }, 1800)
+}
+
 const copyQrValue = async () => {
   if (!activeQrItem.value) return
-  await copyText(activeQrItem.value.value)
+  await copyText(activeQrItem.value.value, null)
   qrValueCopied.value = true
   setTimeout(() => {
     qrValueCopied.value = false
   }, 1600)
 }
 
-const copyText = async (text) => {
+const copyText = async (text, inputRef) => {
   try {
     await navigator.clipboard.writeText(text)
   } catch {
-    urlInput.value?.select()
-    document.execCommand('copy')
+    if (inputRef && inputRef.value) {
+      inputRef.value.select()
+      document.execCommand('copy')
+    }
   }
 }
 
@@ -246,14 +273,69 @@ const renderActiveQr = async () => {
 }
 
 watch(activeQrIndex, renderActiveQr)
+
+const generateShortLink = async () => {
+  if (!props.result) return
+  shortLink.value = ''
+  shortLinkLoading.value = true
+  try {
+    const response = await fetch('/api/shortlink', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: props.result })
+    })
+    const data = await response.json()
+    if (response.ok && !data.error) {
+      shortLink.value = data.shortUrl
+    }
+  } catch (err) {
+    console.error('自动生成短链接失败:', err)
+  } finally {
+    shortLinkLoading.value = false
+  }
+}
+
 watch(() => props.result, () => {
   showQR.value = false
   qrItems.value = []
   activeQrIndex.value = 0
-})
+  generateShortLink()
+}, { immediate: true })
 </script>
 
 <style scoped>
+.result-url {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.shortlink-box {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.shortlink-box .result-url {
+  gap: 8px;
+}
+
+.loader-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-soft);
+}
+
+.pl-36 {
+  padding-left: 36px !important;
+}
+
+.compact-copy {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+}
+
 .result-panel {
   display: grid;
   gap: 14px;

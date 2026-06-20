@@ -292,11 +292,17 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 76px;
-  padding: 13px;
+  min-height: 58px;
+  padding: 10px 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--overlay);
+  transition: border-color 0.18s ease;
+  cursor: pointer;
+}
+
+.switch-card:hover {
+  border-color: var(--line-strong);
 }
 
 .switch-card strong,
@@ -306,11 +312,11 @@ main {
 
 .switch-card strong {
   color: var(--text);
-  font-size: 0.94rem;
+  font-size: 0.92rem;
 }
 
 .switch-card small {
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--text-muted);
   font-size: 0.78rem;
   line-height: 1.45;
