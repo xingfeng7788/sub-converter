@@ -35,14 +35,18 @@ async function fetchRulesetText(url) {
     const diskFile = path.join(CACHE_DIR, `ruleset_${hash}.txt`);
     
     try {
+        console.log(`[TemplateResolver] Downloading ruleset: ${url}`);
+        const start = Date.now();
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch HTTP ' + res.status);
         const text = await res.text();
         fs.writeFileSync(diskFile, text, 'utf8');
+        console.log(`[TemplateResolver] Downloaded ${url} in ${Date.now() - start}ms (${(text.length / 1024).toFixed(1)} KB)`);
         return text;
     } catch (e) {
-        console.warn(`Fetch failed for ${url}, trying disk cache...`, e.message);
+        console.warn(`[TemplateResolver] Fetch failed for ${url}, trying disk cache...`, e.message);
         if (fs.existsSync(diskFile)) {
+            console.log(`[TemplateResolver] Recovered ${url} from disk cache`);
             return fs.readFileSync(diskFile, 'utf8');
         }
         throw e;
@@ -103,6 +107,8 @@ function parseRuleset(text, groupName, rulesArray) {
 }
 
 async function doResolveTemplate(templateId) {
+    console.log(`[TemplateResolver] Resolving template [${templateId}]...`);
+    const startOverall = Date.now();
     const url = customTemplates[templateId];
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch template INI');
@@ -164,15 +170,20 @@ async function doResolveTemplate(templateId) {
     }
     
     // Fetch external rulesets concurrently
+    console.log(`[TemplateResolver] [${templateId}] Found ${rulesetsToFetch.length} external rulesets to fetch.`);
     await Promise.all(rulesetsToFetch.map(async ({ target, groupName }) => {
         try {
             const text = await fetchRulesetText(target);
+            const startParse = Date.now();
+            const rulesBefore = rules.length;
             parseRuleset(text, groupName, rules);
+            console.log(`[TemplateResolver] [${templateId}] Parsed ${rules.length - rulesBefore} rules for group '${groupName}' in ${Date.now() - startParse}ms`);
         } catch (e) {
-            console.error('Error fetching ruleset list:', target, e.message);
+            console.error(`[TemplateResolver] [${templateId}] Error fetching ruleset list:`, target, e.message);
         }
     }));
     
+    console.log(`[TemplateResolver] [${templateId}] Resolved in ${Date.now() - startOverall}ms. Groups: ${proxyGroups.length}, Total Rules: ${rules.length}`);
     return {
         name: templateId,
         description: 'Custom dynamic template',
@@ -186,6 +197,7 @@ export async function resolveTemplate(templateId) {
 
     // 1. Fast path: Memory Cache
     if (templateCache.has(templateId)) {
+        console.log(`[TemplateResolver] [${templateId}] Served from MEMORY cache`);
         return templateCache.get(templateId);
     }
 
@@ -195,14 +207,16 @@ export async function resolveTemplate(templateId) {
         try {
             const cached = JSON.parse(fs.readFileSync(diskCacheFile, 'utf8'));
             templateCache.set(templateId, cached);
+            console.log(`[TemplateResolver] [${templateId}] Served from DISK cache, triggering background update`);
             // Kick off background revalidation to ensure it's fresh
             updateTemplateInBackground(templateId);
             return cached;
         } catch (e) {
-            console.warn(`Failed to read disk cache for ${templateId}`, e.message);
+            console.warn(`[TemplateResolver] Failed to read disk cache for ${templateId}`, e.message);
         }
     }
 
+    console.log(`[TemplateResolver] [${templateId}] Cache miss, running full sync resolution...`);
     // 3. Slow path: Fetch & Parse synchronously (only happens once if no cache exists)
     return await updateTemplateInBackground(templateId);
 }
@@ -215,10 +229,11 @@ async function updateTemplateInBackground(templateId) {
             templateCache.set(templateId, presetObj);
             const diskCacheFile = path.join(CACHE_DIR, `template_${templateId}.json`);
             fs.writeFileSync(diskCacheFile, JSON.stringify(presetObj), 'utf8');
+            console.log(`[TemplateResolver] [${templateId}] Successfully updated cache`);
         }
         return presetObj;
     } catch (e) {
-        console.error(`Failed to background update template ${templateId}:`, e.message);
+        console.error(`[TemplateResolver] [${templateId}] Background update failed:`, e.message);
         return templateCache.get(templateId) || null;
     }
 }
