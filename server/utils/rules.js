@@ -190,11 +190,16 @@ export function applyRulePreset(nodeNames, presetId = 'basic') {
             for (const name of names) {
                 for (const pattern of group.filter) {
                     try {
-                        if (new RegExp(pattern, 'i').test(name)) {
+                        // JavaScript RegExp does not support inline (?i) modifier
+                        // Since we pass 'i' flag anyway, we can just strip it
+                        let jsPattern = pattern.replace(/\(\?i\)/g, '');
+                        if (new RegExp(jsPattern, 'i').test(name)) {
                             proxies.push(name);
                             break;
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('Invalid regex in filter:', pattern, e.message);
+                    }
                 }
             }
         }
