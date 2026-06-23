@@ -183,12 +183,17 @@ async function doResolveTemplate(templateId) {
         }
     }));
     
-    console.log(`[TemplateResolver] [${templateId}] Resolved in ${Date.now() - startOverall}ms. Groups: ${proxyGroups.length}, Total Rules: ${rules.length}`);
+    // 确保所有的 MATCH / FINAL 规则都在最后面，防止规则被提前拦截
+    const normalRules = rules.filter(r => !r.startsWith('MATCH,'));
+    const finalRules = rules.filter(r => r.startsWith('MATCH,'));
+    const sortedRules = [...normalRules, ...finalRules];
+
+    console.log(`[TemplateResolver] [${templateId}] Resolved in ${Date.now() - startOverall}ms. Groups: ${proxyGroups.length}, Total Rules: ${sortedRules.length}`);
     return {
         name: templateId,
         description: 'Custom dynamic template',
         groups: proxyGroups,
-        rules: rules
+        rules: sortedRules
     };
 }
 
