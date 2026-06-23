@@ -130,19 +130,10 @@ const convertSubscription = async () => {
     }
 
     const candidateUrl = `${window.location.origin}/api/convert?${params.toString()}`
-    const response = await fetch(candidateUrl)
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type') || ''
-      const detail = contentType.includes('application/json')
-        ? await response.json()
-        : await response.text()
-      throw new Error(apiErrorMessage(detail, `转换失败（HTTP ${response.status}）`))
-    }
-    const output = await response.text()
-    if (!output.trim()) throw new Error('目标客户端没有可输出的兼容节点')
+    // 直接生成链接，不再请求后端验证，避免触发后台解析
     convertedUrl.value = candidateUrl
   } catch (err) {
-    error.value = apiErrorMessage(err, '转换失败')
+    error.value = apiErrorMessage(err, '生成失败')
   } finally {
     loading.value = false
   }

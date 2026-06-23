@@ -249,10 +249,10 @@ async function updateAllTemplates() {
 }
 
 // Run the job every 2 hours
-setInterval(updateAllTemplates, 2 * 60 * 60 * 1000);
+// setInterval(updateAllTemplates, 2 * 60 * 60 * 1000);
 
 // Run 5 seconds after startup to prime the cache
-setTimeout(updateAllTemplates, 5000);
+// setTimeout(updateAllTemplates, 5000);
 
 export function getCustomTemplates() {
     return Object.keys(customTemplates).map(key => ({
